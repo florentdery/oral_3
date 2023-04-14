@@ -10,13 +10,13 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-```
-
 ## Contexte
 
 Choix de projet = Effets des pâturages sur l'abondance et la diversité des amphibiens.
+
+Invertebrés vs sensibilité / eutrophisation
+Écrevisses vs sensibilité / eutrophisation
+Poisson ?? 
 
 ## Objectif et question de recherche (étape 1)
 
@@ -29,10 +29,16 @@ Vérifier l'impact du pâturage par le bétail (vaches) sur les communautés d'a
 ## Hypothèses et prédictions (étape 2) | sous-titre
 ### sous titre ???
 
-La présence et l'intensité dMutilisation du bétail modifient les ocnditons physicochimiques des étanges, et ainsi les communautés 
+La présence et l'intensité d'M'utilisation du bétail modifient les conditions physico-chimiques des étangs, et ainsi l'abondance des invertébrés, poissons et écrevisses, ce qui détermine la composition des communautés amphibiennes. 
+
 
 Prédictions: 
-- Les 
+- Les conditions physico-chimiques sont différentes entre les étangs cloturés vs non-cloturés. 
+  - Les vaches seront corrélées positivement aux nitrites
+  - Les vaches seront corrélées positivement à la *temperature*?
+  - Les vaches seront corrélées positivement à la conductivité
+  - Les vaches seront corrélées négativement au pH
+  - Les vaches seront corrélées négativement à l'O^2
 
 ## Variables du système (étape 3)
 
@@ -65,9 +71,20 @@ dat %>% select(invertebres:poissons) %>%
 
 require(ggplot)
 ggplot(dat) +
-  geom_density(aes(vache_std), alpha=.5)+
+  geom_histogram(aes(vache_std), alpha=.5)+
   facet_wrap(~cloture)
-  
+
+ggplot(dat, aes(poissons, fill=cloture)) +
+  geom_boxplot( alpha=.5) 
+
+ggplot(dat, aes(invertebres, fill=cloture)) +
+  geom_boxplot( alpha=.5) 
+
+ggplot(dat, aes(ecrevisses, fill=cloture)) +
+  geom_boxplot( alpha=.5) 
+
+
+
 dat[dat$cloture=="Yes",]$vache_std
 dat[dat$cloture=="No",]$vache_std %>% sort()
 
@@ -75,21 +92,38 @@ dat[dat$cloture=="No",]$vache_std %>% sort()
 
 
 ## Rôle, type et distribution des variables (étape 4)
-
-- 
-- 
-- 
+Myriam
+- Y = matrice des communautés
+- x= vache pas vache et intensité des vaches
+- co-variables 
+  - physico-chimie
+  - caractéristiques physisiques de l'étang
+    - aire, profondeur etc.
+  - abondance des facteurs biotiques (invertébrés, ecrevisses et poissons)
 
 ## Interactions potentielles à tester (étape 5)
 
-```{r cars, echo = TRUE}
-summary(cars)
+caractéristiques physiques (topo) comme profondeur, en interaction avec utilisation des vaches (interaction entre potentiel d'eutrophisation*vaches) 
+
+Florent fait un plot
+
+```{r, echo = TRUE}
+
+
 ```
 
 ## Exploration des données (étape 6)
 
-```{r pressure}
-plot(pressure)
+Morgane : 6.1 à 6.4
+
+Florent:6.5 à 6.8
+
+
+## Choix de l'analyse (étape 7)
+
+## Exécuter l'analyse (étape 8)
+```{r}
+
 ```
 
 ## Choix de l'analyse (étape 7)
