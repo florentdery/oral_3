@@ -20,9 +20,19 @@ Choix de projet = Effets des pâturages sur l'abondance et la diversité des amp
 
 ## Objectif et question de recherche (étape 1)
 
+Vérifier l'impact du pâturage par le bétail (vaches) sur les communautés d'amphibiens. 
 
-## Hypothèses et prédictions (étape 2)
 
+
+
+
+## Hypothèses et prédictions (étape 2) | sous-titre
+### sous titre ???
+
+La présence et l'intensité dMutilisation du bétail modifient les ocnditons physicochimiques des étanges, et ainsi les communautés 
+
+Prédictions: 
+- Les 
 
 ## Variables du système (étape 3)
 
@@ -52,6 +62,15 @@ dat %>%
 
 dat %>% select(invertebres:poissons) %>% 
   colSums()
+
+require(ggplot)
+ggplot(dat) +
+  geom_density(aes(vache_std), alpha=.5)+
+  facet_wrap(~cloture)
+  
+dat[dat$cloture=="Yes",]$vache_std
+dat[dat$cloture=="No",]$vache_std %>% sort()
+
 ```
 
 
