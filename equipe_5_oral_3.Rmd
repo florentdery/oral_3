@@ -1,0 +1,78 @@
+---
+title: "Les vaches,<br>les amphibiens<br>et vous"
+author: "Équipe 5 - Florent Déry, Morgane Le Goff, Myriam Trottier-Paquet"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Contexte
+
+Choix de projet = Effets des pâturages sur l'abondance et la diversité des amphibiens.
+
+## Objectif et question de recherche (étape 1)
+
+
+## Hypothèses et prédictions (étape 2)
+
+
+## Variables du système (étape 3)
+
+- Modèle conceptuel?
+Voici le jeu de données : 
+
+```{r load_data, echo=F, warnings=F, message=F}
+require(tidyverse)
+dat=read.delim("data/jeu_ecologique.txt") %>% 
+  mutate(etang=as.factor(as.character(etang)),
+         cloture=factor(cloture)) %>% 
+  rename(vache_std=vache) %>% 
+  arrange(aire) 
+glimpse(dat)
+summary(dat)
+
+```
+
+
+```{r quick_look, echo=F, warnings=F, message=F}
+dat %>% count(cloture)
+length(unique(dat$etang))
+
+dat %>% 
+  select(A_Gr:N_Vi) %>% 
+  colSums()
+
+dat %>% select(invertebres:poissons) %>% 
+  colSums()
+```
+
+
+## Rôle, type et distribution des variables (étape 4)
+
+- 
+- 
+- 
+
+## Interactions potentielles à tester (étape 5)
+
+```{r cars, echo = TRUE}
+summary(cars)
+```
+
+## Exploration des données (étape 6)
+
+```{r pressure}
+plot(pressure)
+```
+
+## Choix de l'analyse (étape 7)
+
+## Exécuter l'analyse (étape 8)
