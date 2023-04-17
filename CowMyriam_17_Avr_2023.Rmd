@@ -91,63 +91,75 @@ range(amphi)
 par(mfrow=c(3,3))
 hist(amphi$A_Gr,
      main="Acris gryllus",
-     xlab="Abondance standardisée par espèce",
+     xlab="",
      ylab="Nombre d'étangs",
-     col="bisque")
+     col="steelblue4")
 hist(amphi$G_Ca,
      main="Gastrophryne carolinensis",
-     xlab="Abondance standardisée par espèce",
-     ylab="Nombre d'étangs",
-     col="bisque")
+     xlab="",
+     ylab="",
+     col="steelblue4")
 hist(amphi$S_La,
      main="Siren lacertina",
-     xlab="Abondance standardisée par espèce",
-     ylab="Nombre d'étangs",
-     col="bisque")
+     xlab="",
+     ylab="",
+     col="steelblue4")
 hist(amphi$H_Ci,
      main="Hyla cinerea",
-     xlab="Abondance standardisée par espèce",
+     xlab="",
      ylab="Nombre d'étangs",
-     col="bisque")
+     col="steelblue4")
 hist(amphi$H_Fe,
      main="Hyla Femoralis",
-     xlab="Abondance standardisée par espèce",
-     ylab="Nombre d'étangs",
-     col="bisque")
+     xlab="",
+     ylab="",
+     col="steelblue4")
 hist(amphi$H_Sq,
      main="Hyla squirella",
-     xlab="Abondance standardisée par espèce",
-     ylab="Nombre d'étangs",
-     col="bisque")
+     xlab="",
+     ylab="",
+     col="steelblue4")
 hist(amphi$L_Gr,
      main="Lithobates grylio",
      xlab="Abondance standardisée par espèce",
      ylab="Nombre d'étangs",
-     col="bisque")
+     col="steelblue4")
 hist(amphi$L_Sp,
      main="Lithobates sphenocephalus",
      xlab="Abondance standardisée par espèce",
-     ylab="Nombre d'étangs",
-     col="bisque")
+     ylab="",
+     col="steelblue4")
 hist(amphi$N_Vi,
      main="Notophthalmus viridescens",
      xlab="Abondance standardisée par espèce",
-     ylab="Nombre d'étangs",
-     col="bisque")
+     ylab="",
+     col="steelblue4")
 
 #Nombre de zéros
 sum(amphi==0)
 #Proportion de zéros dans la communauté
 sum(amphi==0)/(nrow(amphi)*ncol(amphi))
 ```
-Les données d'abondance ont été standardisées par unité d'effort et par abondance totale pour chaque espèce. Les variables Y sont numériques continues, distribuées dans un intervalle allant de 0 à 0,86 (la somme pour chaque espèce est égale à 1). Il y a énormément de zéros, près de 71% des données de la matrice sont égales à 0, ce qui est un problème pour les données de communautés écologiques. Lorsque plusieurs sites partagent la présence d'une espèce, nous savons que ces sites se ressemblent entre eux, qu'ils partagent les conditions nécessaires à la présence de cette espèce. Par contre, lorsque que plusieurs sites partagent l'absence d'une espèce, nous ne pouvons pas savoir si les 0 sont dus aux même facteurs (absence réelle ou simplement pas été échantillonnée) et par conséquent, nous ne pouvons pas conclure qu'ils sont aussi ressemblants que s'ils partageaient la présence d'une espèce. Il est donc nécessaire de transformer les données à l'aide d'une mesure de dissimilarité asymétrique (pour donner davantage de poids à la présence qu'à l'absence de l'espèce).Les transformations les plus recommandées pour un usage général sont les transformations de "Chord" et "Hellinger" (Legendre et Legendre, 2012). Nous choisissons la transformation de Helliger qui obtient le meilleur R^2 (Legendre et Gallagher, 2001).
+Les données d'abondance ont été standardisées par unité d'effort et par abondance totale pour chaque espèce. Les variables Y sont numériques continues, distribuées dans un intervalle allant de 0 à 0,86 (la somme pour chaque espèce est égale à 1). Il y a énormément de zéros, près de 71% des données de la matrice sont égales à 0, ce qui est un problème pour les données de communautés écologiques. 
+
+Lorsque plusieurs sites partagent la présence d'une espèce, nous savons que ces sites se ressemblent entre eux, qu'ils partagent les conditions nécessaires à la présence de cette espèce. 
+
+Par contre, lorsque que plusieurs sites partagent l'absence d'une espèce, nous ne pouvons pas savoir si les 0 sont dus aux même facteurs (absence réelle ou simplement pas été échantillonnée) et par conséquent, nous ne pouvons pas conclure qu'ils sont aussi ressemblants que s'ils partageaient la présence d'une espèce. 
+
+Il est donc nécessaire de transformer les données à l'aide d'une mesure de dissimilarité asymétrique (pour donner davantage de poids à la présence qu'à l'absence de l'espèce).
+
+Les transformations les plus recommandées pour un usage général sont les transformations de "Chord" et "Hellinger" (Legendre et Legendre, 2012). Nous choisissons la transformation de Helliger qui obtient le meilleur R^2 (Legendre et Gallagher, 2001).
 
 ###Variables indépendantes X
 - Présence ou absence de clôture excluant le bétail (variable catégorique à 2 facteurs)
 - Intensité d'utilisation de l'étang par le bétail (Nombre de tas de fèces de vache dans un rayon d'un mètre autour de l'étang divisé par le périmètre de l'étang)
 
 ```{r}
-ggplot(dat, aes(x=factor(cloture)))+geom_bar(stats=count, fill='bisque')+theme_classic()+xlab("Présence de clôtures excluants le bétail")+ylab("Nombre d'étangs")
+ggplot(dat, aes(x=factor(cloture)))+
+  geom_bar(stats=count, fill='bisque')+
+  xlab("Présence de clôtures excluants le bétail")+
+  ylab("Nombre d'étangs")+
+  theme_classic()
 
 par(mfrow=c(1,1))
 hist(dat$vache_std,
