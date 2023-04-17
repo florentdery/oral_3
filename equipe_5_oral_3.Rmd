@@ -103,11 +103,37 @@ Myriam
 
 ## Interactions potentielles à tester (étape 5)
 
-caractéristiques physiques (topo) comme profondeur, en interaction avec utilisation des vaches (interaction entre potentiel d'eutrophisation*vaches) 
+Les caractéristiques topographiques des étangs telles que la profondeur et la superficie pourraient être relié à l'état d'eutrophisation du plan d'eau, et ainsi avoir un impact sur l'abondance d'invertébrés, de poissons et d'écrevisses pour déterminer la composition communautés d'amphibiens. 
 
-Florent fait un plot
+La profondeur et la supercie pourraient aussi interagir avec l'intensité d'utilisation par les vaches. Effectivement, pour une même intensité d'utilisation par les vaches, un petit lac peu profond recevra d'avantage d'intrants (phosphore, matière organique, nitrites etc.) qu'un étang plus grand et plus profond
+
+Mais ces  caractéristiques pourraient aussi être des covariables (on est pas intéressé à ces variables, et il est peu probable d'avoir de sinteractions valables (p.ex. un petit étang risque dM'avoir toujours moins d'oxyugène etc. )) -> partial rda ? 
 
 ```{r, echo = TRUE}
+
+dat %>% 
+  mutate(prof_cat=factor(
+    case_when(
+      profondeur < 181 ~ "very_shallow", 
+      profondeur %in% c(181:242)~ "shallow",
+      profondeur %in% c(243:330)~ "medium",
+      profondeur %in% c(331:460)~ "deep",
+      profondeur > 460 ~ "very_deep"    
+    ), levels= c("very_shallow", 
+                 "shallow",
+                 "medium",
+                 "deep",
+                 "very_deep")))%>% 
+  pivot_longer(A_Gr:N_Vi, names_to = "espece", values_to = "prop") %>% 
+  pivot_longer(conductivite:pH, names_to = "parametre", values_to = "mesure") %>% 
+  ggplot()+
+  geom_point(aes(x= mesure, y= prop, color=espece)) +
+  facet_grid(vars(cloture), vars(prof_cat), scales= "free_x", space="free_x")+
+  ylab("Proportion par site")+
+  xlab("Mesure du paramètre")
+
+
+
 
 
 ```
@@ -115,8 +141,239 @@ Florent fait un plot
 ## Exploration des données (étape 6)
 
 Morgane : 6.1 à 6.4
+Florent:6.5 à 6.8 
 
-Florent:6.5 à 6.8
+## 6.5 - Collinéarité des X
+Premièrement avec les étangs non cloturés: 
+```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=5.3}
+dat %>% 
+  subset(cloture=="No") %>% 
+  select(vache_std:poissons) %>%
+  relocate(aire, .after = profondeur) %>% 
+  psych::pairs.panels()
+
+```
+
+## 6.5 - Collinéarité des X
+Maintenant avec les étangs non cloturés, sans la variables vache
+```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=5.3}
+dat %>% 
+  select(profondeur:poissons) %>%
+  relocate(aire, .after = profondeur) %>% 
+  psych::pairs.panels()
+
+```
+
+
+## 6.5 - Collinéarité des X
+Variable cloture vs. variables *physico-chimiques*
+
+```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
+dat %>% 
+  select(cloture, conductivite:pH) %>% 
+  pivot_longer(conductivite:pH, names_to = "parametre", values_to = "mesure") %>% 
+  ggplot(aes(y= mesure, x=cloture )) +
+  geom_boxplot(outlier.shape = NA)+
+  geom_jitter(height=0, width=.1)+
+  facet_wrap(~parametre, scales = "free_y")+
+  theme_bw()
+
+```
+
+## 6.5 - Collinéarité des X
+Variable cloture vs. variables *topographiques*
+
+```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
+dat %>% 
+  select(cloture, profondeur, aire) %>% 
+  pivot_longer(profondeur:aire, names_to = "caracteristique", values_to = "mesure") %>% 
+  ggplot(aes(y= mesure, x=cloture )) +
+  geom_boxplot(outlier.shape = NA)+
+  geom_jitter(height=0, width=.1)+
+  facet_wrap(~caracteristique, scales = "free_y")+
+  theme_bw()
+
+```
+
+## 6.5 - Collinéarité des X
+Variable cloture vs. variables *biotiques*
+
+```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
+dat %>% 
+  select(cloture, invertebres:poissons) %>% 
+  pivot_longer(invertebres:poissons, names_to = "taxon", values_to = "compte") %>% 
+  ggplot(aes(y= compte, x=cloture )) +
+  geom_boxplot(outlier.shape = NA)+
+  geom_jitter(height=0, width=.1)+
+  facet_wrap(~taxon, scales = "free_y")+
+  theme_bw()
+
+
+
+```
+
+## 6.6 Liens X et Y
+Abondances relatives en fonction des paramètres physico-chimiques
+```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
+
+pal=paletteer::paletteer_d("colorBlindness::paletteMartin") %>%  sample(9)
+
+dat%>% 
+  pivot_longer(A_Gr:N_Vi, names_to = "espece", values_to = "prop") %>% 
+  pivot_longer(conductivite:pH, names_to = "parametre", values_to = "mesure") %>% 
+  ggplot(aes(x= mesure, y= prop))+
+  geom_point(aes(color=espece), size=2) +
+    geom_smooth()+
+   scale_color_manual(values=pal)+
+ facet_wrap(~parametre, scales= "free_x")+
+  ylab("Proportion par site")+
+  xlab("Mesure du paramètre")+
+  theme_bw()
+
+
+ # %>% 
+ #  mutate(prof_cat=factor(
+ #    case_when(
+ #      profondeur < 181 ~ "very_shallow", 
+ #      profondeur %in% c(181:242)~ "shallow",
+ #      profondeur %in% c(243:330)~ "medium",
+ #      profondeur %in% c(331:460)~ "deep",
+ #      profondeur > 460 ~ "very_deep"    
+ #    ), levels= c("very_shallow", 
+ #                 "shallow",
+ #                 "medium",
+ #                 "deep",
+ #                 "very_deep")))
+```
+
+## 6.6 Liens X et Y
+Abondances relatives en fonction des caractéristiques topographiques
+
+```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
+
+dat%>% 
+  pivot_longer(A_Gr:N_Vi, names_to = "espece", values_to = "prop") %>% 
+  select(prop, profondeur, aire, espece) %>% 
+  pivot_longer(profondeur:aire, names_to = "caracteristique", values_to = "mesure") %>% 
+  ggplot(aes(x= mesure, y= prop))+
+  geom_point(aes(color=espece), size=2) +
+    geom_smooth()+
+   scale_color_manual(values=pal)+
+ facet_wrap(~caracteristique, scales= "free_x")+
+  ylab("Proportion par site")+
+  xlab("Mesure du paramètre")+
+  theme_bw()
+
+```
+
+## 6.6 Liens X et Y
+Abondances relatives en fonction des facteurs biotiques
+
+```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=4.3, fig.align="center"}
+dat%>% 
+  pivot_longer(A_Gr:N_Vi, names_to = "espece", values_to = "prop") %>% 
+  pivot_longer(invertebres:poissons, names_to = "facteur_biotique", values_to = "compte") %>% 
+  ggplot(aes(x= compte, y= prop))+
+  geom_point(aes(color=espece), size=2) +
+    geom_smooth()+
+   scale_color_manual(values=pal)+
+ facet_wrap(~facteur_biotique, scales= "free_x")+
+  ylab("Proportion par site")+
+  xlab("Mesure du paramètre")+
+  theme_bw()
+
+```
+
+## 6.6 Liens X et Y
+Abondances relatives en fonction de l'intensité des vaches et de la présence de cloture
+
+
+```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=4.3, fig.align="center"}
+p1=dat%>% 
+  pivot_longer(A_Gr:N_Vi, names_to = "espece", values_to = "prop") %>% 
+  ggplot(aes(x= cloture, y= prop))+
+  geom_boxplot(outlier.shape = NA)+
+  geom_jitter(aes(color=espece),height=0, width=.1)+
+   scale_color_manual(values=pal)+
+  ylab("Proportion par site")+
+  xlab("Cloturé?")+
+  theme_bw()+
+  theme(legend.position = "none")
+
+p2= dat%>% 
+  pivot_longer(A_Gr:N_Vi, names_to = "espece", values_to = "prop") %>% 
+  ggplot(aes(x= vache_std, y= prop))+
+  geom_point(aes(color=espece), size=2) +
+    geom_smooth()+
+   scale_color_manual(values=pal)+
+  ylab("Proportion par site")+
+  xlab("Intensité d'utilisation par les vaches")+
+  theme_bw()
+
+require(patchwork)
+p1+p2+plot_layout(ncol=2, guides = "collect")
+
+```
+
+## 6.7 Indépendance des Y
+
+Richesse spécifique nombre d'espèces en fonction des sites
+```{r}
+dat2=dat
+
+rownames(dat2) <- dat2$etang
+
+dat2=dat2 %>%
+  arrange(etang) %>% 
+  select(A_Gr:N_Vi)
+
+dat2 %>% range()
+
+sum(dat2==0) #254 absences 
+sum(dat2>0) #106 presences
+sum(dat2==0)/(nrow(dat2)*ncol(dat2))# 70% zeros
+
+#number of sites with occurences of a given species 
+spe.pres <- apply(dat2 > 0, 2, sum)
+# Sort the results in increasing order
+sort(spe.pres)
+
+spe.relf <- 100*spe.pres/nrow(dat2)
+# Round the sorted output to 1 digit
+round(sort(spe.relf), 1)
+
+
+par(mfrow=c(1,2))
+hist(spe.pres, main="Species Occurrences", right=FALSE, las=1, 
+    xlab="Number of occurrences", ylab="Number of species", 
+    breaks=seq(0,30,by=5), col="bisque")
+hist(spe.relf, main="Species Relative Frequencies", right=FALSE, las=1,
+    xlab="Frequency of occurrences (%)", ylab="Number of species",
+        breaks=seq(0, 100, by=10), col="bisque")
+
+# To sum by rows, the second argument of apply(), MARGIN, is set to 1
+sit.pres <- apply(dat2> 0, 1, sum)
+# Sort the results in increasing order
+sort(sit.pres)
+
+# Plot species richness vs. position of the sites along the river
+plot(sit.pres,type="s", las=1, col="gray",
+    main="Species richness across sites",
+    xlab="site number", ylab="Species richness")
+text(jitter(sit.pres, factor=1, amount=.1), row.names(dat2), cex=.8, col="red")
+
+
+```
+
+
+## 6.8 Collinéarité des Y
+
+
+```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=4.3, fig.align="center"}
+dat%>% 
+  select(A_Gr:N_Vi) %>% 
+  psych::pairs.panels()
+```
 
 
 ## Choix de l'analyse (étape 7)
