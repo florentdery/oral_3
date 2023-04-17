@@ -149,6 +149,7 @@ Les données d'abondance ont été standardisées par unité d'effort et par abo
 ```{r}
 ggplot(dat, aes(x=factor(cloture)))+geom_bar(stats=count, fill='bisque')+theme_classic()+xlab("Présence de clôtures excluants le bétail")+ylab("Nombre d'étangs")
 
+par(mfrow=c(1,1))
 hist(dat$vache_std,
      main="Intensité d'utilisation par le bétail",
      xlab="Nombre de fèces standardisé",
