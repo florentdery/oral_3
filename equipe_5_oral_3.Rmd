@@ -211,43 +211,37 @@ hist(dat$poissons,
 
 ## Interactions potentielles à tester (étape 5)
 
-Les caractéristiques topographiques des étangs telles que la profondeur et la superficie pourraient être relié à l'état d'eutrophisation du plan d'eau, et ainsi avoir un impact sur l'abondance d'invertébrés, de poissons et d'écrevisses pour déterminer la composition communautés d'amphibiens. 
-
-La profondeur et la supercie pourraient aussi interagir avec l'intensité d'utilisation par les vaches. Effectivement, pour une même intensité d'utilisation par les vaches, un petit lac peu profond recevra d'avantage d'intrants (phosphore, matière organique, nitrites etc.) qu'un étang plus grand et plus profond
-
-Mais ces  caractéristiques pourraient aussi être des covariables (on est pas intéressé à ces variables, et il est peu probable d'avoir de sinteractions valables (p.ex. un petit étang risque dM'avoir toujours moins d'oxyugène etc. )) -> partial rda ? 
-
-## Interactions potentielles à tester (étape 5)
+Aucune. La question initiale parle plus d'objectifs specifiques en termes d'effets fixes (Clôturé.. vs pas Clôturé, ou encore l'effet de l'intensité d'utilisation des vaches). On pose des questions en termes d'effets seuls - pas een interaction. On demande toutefois de prendre en compte les caractéristiques physico-chimiques et biotiques (en tant que covariables).  
 
 ```{r boff_interaction, echo = F}
-dat %>% 
-  mutate(prof_cat=factor(
-    case_when(
-      profondeur < 181 ~ "very_shallow", 
-      profondeur %in% c(181:242)~ "shallow",
-      profondeur %in% c(243:330)~ "medium",
-      profondeur %in% c(331:460)~ "deep",
-      profondeur > 460 ~ "very_deep"    
-    ), levels= c("very_shallow", 
-                 "shallow",
-                 "medium",
-                 "deep",
-                 "very_deep")))%>% 
-  pivot_longer(A_Gr:N_Vi, names_to = "espece", values_to = "prop") %>% 
-  pivot_longer(conductivite:pH, names_to = "parametre", values_to = "mesure") %>% 
-  ggplot()+
-  geom_point(aes(x= mesure, y= prop, color=espece)) +
-  facet_grid(vars(cloture), vars(prof_cat), scales= "free_x", space="free_x")+
-  ylab("Proportion par site")+
-  xlab("Mesure du paramètre")
-
+# dat %>% 
+#   mutate(prof_cat=factor(
+#     case_when(
+#       profondeur < 181 ~ "very_shallow", 
+#       profondeur %in% c(181:242)~ "shallow",
+#       profondeur %in% c(243:330)~ "medium",
+#       profondeur %in% c(331:460)~ "deep",
+#       profondeur > 460 ~ "very_deep"    
+#     ), levels= c("very_shallow", 
+#                  "shallow",
+#                  "medium",
+#                  "deep",
+#                  "very_deep")))%>% 
+#   pivot_longer(A_Gr:N_Vi, names_to = "espece", values_to = "prop") %>% 
+#   pivot_longer(conductivite:pH, names_to = "parametre", values_to = "mesure") %>% 
+#   ggplot()+
+#   geom_point(aes(x= mesure, y= prop, color=espece)) +
+#   facet_grid(vars(cloture), vars(prof_cat), scales= "free_x", space="free_x")+
+#   ylab("Proportion par site")+
+#   xlab("Mesure du paramètre")
 ```
 
 ## Exploration des données (étape 6)
 
-## 6.1 Données aberrantes en X et en Y
+## 6.1 - Données aberrantes en X et en Y
 - Les valeurs de vache_std sont entre 0 et 0.575
-- Il ne semble pas y avoir de données aberrantes
+- Il ne semble pas y avoir de données aberrantes, mais 3 étangs non-clôturés ne semblent pas avoir été visités par les vaches. 
+
 ```{r abberent_Xs_vache, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
 range(dat$vache_std) 
 p3=ggplot(dat)+
@@ -274,6 +268,104 @@ plot_grid(p6,p4, ncol=2)+
   labs(caption="Nombre de fèces standardisé")
 ```
 
+## 6.1 - Données aberrantes en X et en Y
+- O2: Il y a des valeurs négatives!!!  
+- pH: Des étangs sont plus acides que du jus de citron, et presqu'aussi basiques que de l'eau de Javel! 
+
+```{r abberent_Xs_physico, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
+Chimie<-dat[ , c(5:9)]
+l1 <- function() {
+  par(
+    mar=c(1,1,1,1),
+    mfrow=c(1,5)
+  )
+for(i in 1:ncol(Chimie)) {
+  hist(Chimie[,i], main=names(Chimie)[i], breaks=30)
+}
+}
+
+l2 <- function() {
+  par(
+    mar=c(1,1,1,1),
+    mfrow=c(1,5)
+  )
+  for(i in 1:ncol(Chimie)) {
+    boxplot(Chimie[,i],horizontal = T, main=NULL)
+  }
+}
+cowplot::plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
+
+```
+
+## 6.1 - Données aberrantes en X et en Y
+
+Il ne semble pas particulièrement y avoir de données aberrantes en ce qui concerne la topographie des étangs
+
+```{r abberent_Xs_topo, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
+Top<-dat[ , c(4, 10)]
+
+l1=function()  {
+  par(
+  mfrow=c(1,2),
+    mar=c(1,1,1,1)
+  )
+for(i in 1:ncol(Top)) {
+  hist(Top[,i], main=names(Top)[i], breaks=30)
+}
+}
+l2=function()  {
+  par(
+  mfrow=c(1,2),
+    mar=c(1,1,1,1)
+  )
+for(i in 1:ncol(Top)) {
+  boxplot(Top[,i], main=NULL, horizontal=T)
+}
+}
+
+cowplot::plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
+```
+
+
+
+```{r abberent_Xs_biotiques, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
+
+living<-dat[ , c("invertebres", "poissons", "ecrevisses")]
+
+l1=function () {
+par(
+  mfrow=c(1,3),
+    mar=c(1,1,1,1)
+  )
+for(i in 1:ncol(living)) {
+  hist(living[,i], main=names(living)[i], breaks=30)
+} 
+}
+
+
+l2=function () {
+par(
+  mfrow=c(1,3),
+    mar=c(1,1,1,1)
+  )
+for(i in 1:ncol(living)) {
+  boxplot(living[,i], main=NULL, horizontal=T)
+}
+}
+cowplot::plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
+
+```
+
+
+
+
+
+## 6.2 - Homogénéité de la variance des Y
+
+
+## 6.3 - Normalité des Y
+
+## 6.4 - Problèmes de 0 dans les Y
 
 ## 6.5 - Collinéarité des X
 Premièrement avec les étangs non cloturés: 
@@ -351,7 +443,7 @@ dat %>%
 
 ```
 
-## 6.6 Liens X et Y
+## 6.6 - Liens X et Y
 Abondances relatives en fonction des paramètres physico-chimiques
 ```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
 
@@ -385,7 +477,7 @@ dat%>%
  #                 "very_deep")))
 ```
 
-## 6.6 Liens X et Y
+## 6.6 - Liens X et Y
 Abondances relatives en fonction des caractéristiques topographiques
 
 ```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
@@ -405,7 +497,7 @@ dat%>%
 
 ```
 
-## 6.6 Liens X et Y
+## 6.6 - Liens X et Y
 Abondances relatives en fonction des facteurs biotiques
 
 ```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=4.3, fig.align="center"}
@@ -423,7 +515,7 @@ dat%>%
 
 ```
 
-## 6.6 Liens X et Y
+## 6.6 - Liens X et Y
 Abondances relatives en fonction de l'intensité des vaches et de la présence de cloture
 
 
@@ -454,7 +546,7 @@ p1+p2+plot_layout(ncol=2, guides = "collect")
 
 ```
 
-## 6.7 Indépendance des Y
+## 6.7 - Indépendance des Y
 
 Richesse spécifique nombre d'espèces en fonction des sites
 ```{r}
@@ -509,7 +601,7 @@ text(jitter(sit.pres, factor=1, amount=.1), row.names(dat2), cex=.8, col="red")
 ```
 
 
-## 6.8 Collinéarité des Y
+## 6.8 - Collinéarité des Y
 
 ```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=4.3, fig.align="center"}
 dat%>% 
