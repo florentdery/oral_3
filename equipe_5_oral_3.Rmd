@@ -238,7 +238,7 @@ Aucune. La question initiale parle plus d'objectifs specifiques en termes d'effe
 
 ## Exploration des données (étape 6)
 
-## 6.1 - Données aberrantes en X et en Y
+## 6.1 - Données aberrantes en X 
 - Les valeurs de vache_std sont entre 0 et 0.575
 - Il ne semble pas y avoir de données aberrantes, mais 3 étangs non-clôturés ne semblent pas avoir été visités par les vaches. 
 
@@ -268,7 +268,7 @@ plot_grid(p6,p4, ncol=2)+
   labs(caption="Nombre de fèces standardisé")
 ```
 
-## 6.1 - Données aberrantes en X et en Y
+## 6.1 - Données aberrantes en X 
 - O2: Il y a des valeurs négatives!!!  
 - pH: Des étangs sont plus acides que du jus de citron, et presqu'aussi basiques que de l'eau de Javel! 
 
@@ -297,7 +297,7 @@ cowplot::plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
 
 ```
 
-## 6.1 - Données aberrantes en X et en Y
+## 6.1 - Données aberrantes en X 
 
 Il ne semble pas particulièrement y avoir de données aberrantes en ce qui concerne la topographie des étangs
 
@@ -326,10 +326,11 @@ for(i in 1:ncol(Top)) {
 cowplot::plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
 ```
 
+## 6.1 - Données aberrantes en X 
 
+En ce qui concerne les poissons et les écrevisses, i8l semble y avoir beaucoup de zéros. Il faudra 
 
 ```{r abberent_Xs_biotiques, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
-
 living<-dat[ , c("invertebres", "poissons", "ecrevisses")]
 
 l1=function () {
@@ -353,8 +354,31 @@ for(i in 1:ncol(living)) {
 }
 }
 cowplot::plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
+```
+
+## 6.1 - données aberrantes en Y
+
+On a déjà jetté un coup d'oeil à la distribution des abondances relatives d'amphibien à l'étape 4. 
+On peut toute fois regarder avec le compte d'espèces à chaque site (convertir les abondances relatives en 0-1 pour chaque site)
+
+#HERE
+
+```{r abberent_Ys, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
+
+
+
+par(mfrow=c(3,3))
+par(mar=c(1,1,1,1))
+
+for(i in 1:ncol(living)) {
+  boxplot(living[,i], main=names(living)[i])
+}
+
+
 
 ```
+
+
 
 
 
