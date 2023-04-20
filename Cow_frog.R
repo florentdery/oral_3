@@ -104,3 +104,75 @@ biplot(NoPoop, scaling = 1, main = "PCA - scaling 1")
 biplot(NoPoop, main = "PCA - scaling 2") # Default scaling 2
 biplot(Poop, scaling = 1, main = "PCA - scaling 1") 
 biplot(Poop, main = "PCA - scaling 2") # Default scaling 2
+
+
+
+
+
+
+
+# Prelim Flo:
+
+dat2=dat
+
+rownames(dat2) <- dat2$etang
+
+dat2=dat2 %>%
+  arrange(etang) %>% 
+  select(A_Gr:N_Vi)
+
+dat2 %>% range()
+
+sum(dat2==0) #254 absences 
+sum(dat2>0) #106 presences
+sum(dat2==0)/(nrow(dat2)*ncol(dat2))# 70% zeros
+
+#number of sites with occurences of a given species 
+
+ <- apply(dat2 > 0, 2, sum)
+# Sort the results in increasing order
+sort(spe.pres)
+
+spe.relf <- 100*spe.pres/nrow(dat2)
+# Round the sorted output to 1 digit
+round(sort(spe.relf), 1)
+
+
+par(mfrow=c(1,2))
+
+
+# 3 espèces sont présentes dans 0 à 5 sites
+hist(spe.pres, main="Species Occurrences", right=FALSE, las=1, 
+     xlab="Number of occurrences", ylab="Number of species", 
+     breaks=seq(0,30,by=5), col="bisque") 
+# 3 espèces sont présentes dans 0 à 5 sites ^^ (p. ex)
+hist(spe.relf, main="Species Relative Frequencies", right=FALSE, las=1,
+     xlab="Frequency of occurrences (%)", ylab="Number of species",
+     breaks=seq(0, 100, by=5), col="bisque")
+
+# To sum by rows, the second argument of apply(), MARGIN, is set to 1
+sit.pres <- apply(dat2> 0, 1, sum)
+# Sort the results in increasing order
+sort(sit.pres)
+
+# Plot species richness vs. position of the sites along the river
+plot(sit.pres,type="s", las=1, col="gray",
+     main="Species richness across sites",
+     xlab="site number", ylab="Species richness")
+text(jitter(sit.pres, factor=1, amount=.1), row.names(dat2), cex=.8, col="red")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -329,7 +329,7 @@ plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
 
 ## 6.1 - Données aberrantes en X 
 
-En ce qui concerne les poissons et les écrevisses, i8l semble y avoir beaucoup de zéros. Il faudra 
+En ce qui concerne les poissons et les écrevisses, i8l semble y avoir beaucoup de zéros. Il faudra peut-être transformer (e.g. log) les variables poissons et écrevisses. Les écrevisses étant des prédateurs des grenouilles (tétards), on pourrait peut-être travailler en absence-présence d'écrevisses dans nos analyses, si cette variable est problématique.  
 
 ```{r aberrant_Xs_biotiques, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
 living<-dat[ , c("invertebres", "poissons", "ecrevisses")]
@@ -360,20 +360,12 @@ plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
 
 ## 6.1 - Données aberrantes en Y
 
-On a déjà jetté un coup d'oeil à la distribution des abondances relatives d'amphibien à l'étape 4. 
-On peut toutefois regarder avec le compte d'espèces à chaque site (convertir les abondances relatives en 0-1 pour chaque site)
-
-```{r}
-#some code for transformation of variables
-```
-
-
-## 6.1 - données aberrantes en Y
+On a déjà jetté un coup d'oeil à la distribution des abondances relatives d'amphibien à l'étape 4. Le voici en rappel avec des boxplots. 
 
 ```{r aberrant_Ys, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(10,5) }
 amphi<-dat %>% 
   select(etang,A_Gr:N_Vi) %>% 
-  column_to_rownames("etang")
+  column_to_rownames("etang") 
 
 
 l1=function () {
@@ -451,16 +443,84 @@ rm(l1,l2, l3, l4, l5,l6,
 
 ```
 
+## 6.1 - Données aberrantes en Y
+
+On peut toutefois inspecter le compte d'espèces à chaque site (convertir les abondances relatives en 0-1 pour chaque site). On peut aussi jetter un coup d'oeil à la richesse spécifique. 
+
+```{r amphi_barplot, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,3)}
+amphi<-dat %>% 
+  select(etang,A_Gr:N_Vi) %>% 
+  column_to_rownames("etang") %>% 
+  vegan::decostand(amphi, method = "pa") 
+
+tmp=table(rowSums(amphi)) %>%
+data.frame()
+colnames(tmp) =  c("especes_presentes", "nombre_de_sites")
+
+plot_grid(
+  ggplot()+
+    geom_col(aes(y=sort(colSums(amphi)),
+                 x=factor(names(sort(colSums(amphi))), 
+                          levels=names(sort(colSums(amphi))))
+    )
+    )+ 
+    xlab("Espèce")+
+    ylab("Nombre de présences\n(tous les sites confondus)")+
+    theme_classic(),
+  
+
+  ggplot(tmp)+
+    geom_col(aes(especes_presentes,nombre_de_sites))+
+    xlab("Richesse spécifique à chaque site")+
+    scale_y_continuous("Nombre de sites", 
+                       breaks=seq(0, 12, 2), 
+                       limits=c(0,12.1))+
+    theme_classic()
+)
+
+
+
+
+raw_data=data.frame(bday=c(rnorm(n=10, mean=20, sd=5),
+                         rnorm(n=10, mean=10, sd=4),
+                         rnorm(n=10, mean=5, sd=3),
+                         rnorm(n=10, mean=4, sd=2),
+                         rnorm(n=10, mean=3, sd=1),
+                         rnorm(n=10, mean=2, sd=0.5)),
+                    poptot=sort(rep(1:6, 10)))
+
+dumb_data=raw_data %>% group_by(poptot) %>% 
+  summarise(fit=mean(bday),
+            sdfit=sd(bday))
+
+
+ggplot(raw_data)+
+  geom_boxplot(aes(x=factor(poptot), y=bday))+
+  geom_ribbon(data=dumb_data, aes(x=poptot, ymin=fit-sdfit, ymax=fit+sdfit), alpha=.5)+
+  geom_line(data=dumb_data, aes(x=poptot, y=fit), lwd=2)+
+  xlab("une belle variable vraiment continue")+
+  ylab("l'affaire que\nt'essaies de modéliser")+
+  ggtitle("Un graphique arrangé\na'c le gars des vues")+
+  theme_bw()
+
+
+
+
+rep(1:6, 10)
 
 
 
 
 
+```
 
 ## 6.2 - Homogénéité de la variance des Y
 
+Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit homogène (on ne fait pas des mod`les linaéres où les résidus devraient être homogènes, etc.); qui plus est, ce n'est pas une supposition à respecter dans le cadre d'une analyse multivariée...
 
 ## 6.3 - Normalité des Y
+
+Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit homogène (on ne fait pas des mod`les linaéres où les résidus devraient être homogènes, etc.); qui plus est, ce n'est pas une supposition à respecter dans le cadre d'une analyse multivariée...
 
 ## 6.4 - Problèmes de 0 dans les Y
 
@@ -524,7 +584,7 @@ dat %>%
 ```
 
 ## 6.5 - Collinéarité des X
-Variable cloture vs. variables *biotiques*
+Variable clôture vs. variables *biotiques*
 
 ```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
 dat %>% 
@@ -612,7 +672,6 @@ dat%>%
 
 ## 6.6 - Liens X et Y
 Abondances relatives en fonction de l'intensité des vaches et de la présence de cloture
-
 
 ```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=4.3, fig.align="center"}
 p1=dat%>% 
