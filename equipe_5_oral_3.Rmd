@@ -717,11 +717,119 @@ dat%>%
 ```
 
 ## Choix de l'analyse (étape 7)
+Les données d'abondance ont été standardisées par unité d'effort et par abondance totale pour chaque espèce. Les variables Y sont numériques continues, distribuées dans un intervalle allant de 0 à 0,86 (la somme pour chaque espèce est égale à 1). Il y a énormément de zéros, près de 71% des données de la matrice sont égales à 0, ce qui est un problème pour les données de communautés écologiques. Lorsque plusieurs sites partagent la présence d'une espèce, nous savons que ces sites se ressemblent entre eux, qu'ils partagent les conditions nécessaires à la présence de cette espèce. Par contre, lorsque que plusieurs sites partagent l'absence d'une espèce, nous ne pouvons pas savoir si les 0 sont dus aux même facteurs (absence réelle ou simplement pas été échantillonnée) et par conséquent, nous ne pouvons pas conclure qu'ils sont aussi ressemblants que s'ils partageaient la présence d'une espèce. Il est donc nécessaire de transformer les données à l'aide d'une mesure de dissimilarité asymétrique (pour donner davantage de poids à la présence qu'à l'absence de l'espèce).Les transformations les plus recommandées pour un usage général sont les transformations de "Chord" et "Hellinger" (Legendre et Legendre, 2012). Nous choisissons la transformation de Helliger qui obtient le meilleur R^2 (Legendre et Gallagher, 2001).
 
+# heeeeeeere 
+```{r RDA!!!}
+library("vegan")
+source("panelutils.R")
+library(adespatial)
+# Hellinger distance matrix 
+#amphi.dh <- dist.ldc(amphi) #Je ne sais pas pourquoi, çca ne fonctionne pas avec les matrice de dissimilarité...
+head(amphi.dh)
+# Hellinger is the default distance 
+
+# Alternate, two-step computation in vegan: 
+amphi.hel= dat%>% 
+    subset(oxygene>0) %>% 
+  select(A_Gr:N_Vi) %>% 
+  decostand("hellinger")
+rownames(amphi.hel) <- subset(dat, oxygene>0)$etang
+
+head(amphi.hel)
+
+topo=dat %>% 
+    subset(oxygene>0) %>% 
+  select(aire, profondeur) %>% 
+  decostand("standardize")
+rownames(topo) <- subset(dat, oxygene>0)$etang
+
+envall=dat %>% 
+  select( vache_std, conductivite:temperature,
+          aire, profondeur, 
+          invertebres:poissons) %>%
+  subset(oxygene>0) %>% 
+  decostand("standardize") 
+envall=cbind(subset(dat, oxygene>0)$cloture, envall) %>% 
+  rename(cloture= `subset(dat, oxygene > 0)$cloture`)
+rownames(envall) <- subset(dat, oxygene>0)$etang
+
+
+env=dat %>% 
+  select( vache_std, conductivite:temperature,
+   #       aire, profondeur, 
+          invertebres:poissons) %>%
+  subset(oxygene>0) %>% 
+  decostand("standardize") 
+env=cbind(subset(dat, oxygene>0)$cloture, env) %>% 
+  rename(cloture= `subset(dat, oxygene > 0)$cloture`)
+rownames(env) <- subset(dat, oxygene>0)$etang
+
+first=rda(amphi.hel~ . , envall)
+second=rda(amphi.hel~ . + Condition(topo$aire +topo$profondeur), env) # add condition (topo)
+
+source("triplot.rda.R")
+
+triplot.rda(first)
+triplot.rda(second)
+
+anova(first, permutations = how(nperm = 999))
+anova(first, by="axis", permutations = how(nperm = 999))
+anova(first, by="term", permutations = how(nperm = 999))
+
+anova(second, permutations = how(nperm = 999))
+anova(second, by="axis", permutations = how(nperm = 999))
+anova(second, by="term", permutations = how(nperm = 999))
+vif.cca(second)
+
+par(mfrow=c(1,2))
+triplot.rda(second, scaling=1, 
+            move.origin=c(0, 0), 
+            mar.percent=0.05,
+            silent=T)
+triplot.rda(second, scaling=2, 
+            move.origin=c(0, 0), 
+            mar.percent=0.05,
+            silent=T)
+
+
+```
+
+2- Transformer les abondances relatives en données de présence-absence (binaire)
+
+Il est recommandé d'utiliser les données de présence-absence lorsque c'est la seule chose disponible ou lorsque nos variables quantitatives sont de qualité inégale ou incertaine (Borcard et al. 2011). Les associations biologiques peuvent être définies sur la base d'une co-occurence des espèces plutôt que sur la co-fluctuation des abondances (Legendre et Lengendre, 2012). 
+Il faut encore une fois transformer les données à l'aide d'un coefficient binaire assymétrique. Le coefficient d'Ochiai est l'équivalent
+```{r}
+library (ade4)
+head(amphi)
+#Présence/absence
+amphi.pa<-decostand(amphi, method= "pa") #Présence/absence:0/1
+head(amphi.pa)
+# Ochiai dissimilarity matrix 
+amphi.och <- dist.ldc(amphi, "ochiai") 
+head(amphi.och)
+# or 
+amphi.och <- dist.binary(amphi, method = 7) 
+head(amphi.och)
+#Ça devrait revenir au même que
+amphi.hel<-decostand(amphi.pa, "hellinger")
+head(amphi.och)
+
+
+amphi.och2<-decostand(amphi.pa, "normalize")
+head(amphi.och2)
+vec.norm<-function(x)sqrt(sum(x^2))
+apply(amphi.norm,1,vec.norm)
+```
 ## Exécuter l'analyse (étape 8)
 ```{r}
 
+# Transformer Y
 
+amphi %>% 
+  select(dat, A_Gr:N_Vi) %>% 
+  
+  
 
 
 
