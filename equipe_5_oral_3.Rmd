@@ -28,10 +28,6 @@ Poisson ??
 
 Vérifier l'impact du pâturage par le bétail (vaches) sur les communautés d'amphibiens. 
 
-
-
-
-
 ## Hypothèses et prédictions (étape 2) | sous-titre
 ### sous titre ???
 
@@ -211,7 +207,7 @@ hist(dat$poissons,
 
 ## Interactions potentielles à tester (étape 5)
 
-Aucune. La question initiale parle plus d'objectifs specifiques en termes d'effets fixes (Clôturé.. vs pas Clôturé, ou encore l'effet de l'intensité d'utilisation des vaches). On pose des questions en termes d'effets seuls - pas een interaction. On demande toutefois de prendre en compte les caractéristiques physico-chimiques et biotiques (en tant que covariables).  
+Aucune. La question initiale parle plus d'objectifs specifiques en termes d'effets fixes (Clôturé. vs pas Clôturé, ou encore l'effet de l'intensité d'utilisation des vaches). On pose des questions en termes d'effets seuls - pas en interaction. On demande toutefois de prendre en compte les caractéristiques physico-chimiques et biotiques (en tant que covariables).  
 
 ```{r boff_interaction, echo = F}
 # dat %>% 
@@ -478,51 +474,18 @@ plot_grid(
     theme_classic()
 )
 
-
-
-
-raw_data=data.frame(bday=c(rnorm(n=10, mean=20, sd=5),
-                         rnorm(n=10, mean=10, sd=4),
-                         rnorm(n=10, mean=5, sd=3),
-                         rnorm(n=10, mean=4, sd=2),
-                         rnorm(n=10, mean=3, sd=1),
-                         rnorm(n=10, mean=2, sd=0.5)),
-                    poptot=sort(rep(1:6, 10)))
-
-dumb_data=raw_data %>% group_by(poptot) %>% 
-  summarise(fit=mean(bday),
-            sdfit=sd(bday))
-
-
-ggplot(raw_data)+
-  geom_boxplot(aes(x=factor(poptot), y=bday))+
-  geom_ribbon(data=dumb_data, aes(x=poptot, ymin=fit-sdfit, ymax=fit+sdfit), alpha=.5)+
-  geom_line(data=dumb_data, aes(x=poptot, y=fit), lwd=2)+
-  xlab("une belle variable vraiment continue")+
-  ylab("l'affaire que\nt'essaies de modéliser")+
-  ggtitle("Un graphique arrangé\na'c le gars des vues")+
-  theme_bw()
-
-
-
-
-rep(1:6, 10)
-
-
-
-
-
 ```
 
-## 6.2 - Homogénéité de la variance des Y
+## 6.2 - Homogénéité de la variance et normalité des Ys
 
-Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit homogène (on ne fait pas des mod`les linaéres où les résidus devraient être homogènes, etc.); qui plus est, ce n'est pas une supposition à respecter dans le cadre d'une analyse multivariée...
+Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit homogène (on ne fait pas des modèles linéaires où les résidus devraient être homogènes, etc.); qui plus est, ce n'est pas une supposition à respecter dans le cadre d'une analyse multivariée...
 
-## 6.3 - Normalité des Y
-
-Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit homogène (on ne fait pas des mod`les linaéres où les résidus devraient être homogènes, etc.); qui plus est, ce n'est pas une supposition à respecter dans le cadre d'une analyse multivariée...
+Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit Normale non plus. 
 
 ## 6.4 - Problèmes de 0 dans les Y
+
+Comme on a vu plus tôt à l'étape 4 les zéros (absences) composent 70.5% de la matrice. Il se pourrait d'ailleurs que la faible présence de certaines espèces (H_Fe, N_Vi et A_GR) pose des problèmes pour l'analyse visée. 
+
 
 ## 6.5 - Collinéarité des X
 Premièrement avec les étangs non cloturés: 
@@ -536,7 +499,7 @@ dat %>%
 ```
 
 ## 6.5 - Collinéarité des X
-Maintenant avec les étangs non cloturés, sans la variables vache
+Maintenant avec les étangs non cloturés, sans la variables vache.
 ```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=5.3}
 dat %>% 
     subset(cloture=="Yes" | vache_std==0) %>% 
@@ -697,60 +660,50 @@ p2= dat%>%
 
 require(patchwork)
 p1+p2+plot_layout(ncol=2, guides = "collect")
-
 ```
 
 ## 6.7 - Indépendance des Y
 
 Richesse spécifique nombre d'espèces en fonction des sites
 ```{r}
-dat2=dat
 
-rownames(dat2) <- dat2$etang
+# 70% zeros
 
-dat2=dat2 %>%
-  arrange(etang) %>% 
-  select(A_Gr:N_Vi)
-
-dat2 %>% range()
-
-sum(dat2==0) #254 absences 
-sum(dat2>0) #106 presences
-sum(dat2==0)/(nrow(dat2)*ncol(dat2))# 70% zeros
-
-#number of sites with occurences of a given species 
-spe.pres <- apply(dat2 > 0, 2, sum)
-# Sort the results in increasing order
-sort(spe.pres)
-
-spe.relf <- 100*spe.pres/nrow(dat2)
-# Round the sorted output to 1 digit
-round(sort(spe.relf), 1)
-
-
-par(mfrow=c(1,2))
+# spe.relf <- 100*spe.pres/nrow(dat2)
+# # Round the sorted output to 1 digit
+# round(sort(spe.relf), 1)
+# 
+# 
+# par(mfrow=c(1,2))
+# # 3 espèces sont présentes dans 0 à 5 sites
+# hist(spe.pres, main="Species Occurrences", right=FALSE, las=1, 
+#     xlab="Number of occurrences", ylab="Number of species", 
+#     breaks=seq(0,30,by=5), col="bisque") 
+# # 3 espèces sont présentes dans 0 à 5 sites ^^ (p. ex)
+# hist(spe.relf, main="Species Relative Frequencies", right=FALSE, las=1,
+#     xlab="Frequency of occurrences (%)", ylab="Number of species",
+#         breaks=seq(0, 100, by=5), col="bisque")
+# 
+# # To sum by rows, the second argument of apply(), MARGIN, is set to 1
+# sit.pres <- apply(dat2> 0, 1, sum)
+# # Sort the results in increasing order
+# sort(sit.pres)
+```
 
 
-# 3 espèces sont présentes dans 0 à 5 sites
-hist(spe.pres, main="Species Occurrences", right=FALSE, las=1, 
-    xlab="Number of occurrences", ylab="Number of species", 
-    breaks=seq(0,30,by=5), col="bisque") 
-# 3 espèces sont présentes dans 0 à 5 sites ^^ (p. ex)
-hist(spe.relf, main="Species Relative Frequencies", right=FALSE, las=1,
-    xlab="Frequency of occurrences (%)", ylab="Number of species",
-        breaks=seq(0, 100, by=5), col="bisque")
-
-# To sum by rows, the second argument of apply(), MARGIN, is set to 1
-sit.pres <- apply(dat2> 0, 1, sum)
-# Sort the results in increasing order
-sort(sit.pres)
-
-# Plot species richness vs. position of the sites along the river
-plot(sit.pres,type="s", las=1, col="gray",
-    main="Species richness across sites",
-    xlab="site number", ylab="Species richness")
-text(jitter(sit.pres, factor=1, amount=.1), row.names(dat2), cex=.8, col="red")
-
+```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=4.3, fig.align="center"}
+# Plot species richness vs. site
+# dat2=dat %>% 
+#   select(A_Gr:N_Vi)
+# rownames(dat2) <- dat2$etang
+# 
+# spe.pres <- apply(dat2 > 0, 2, sum)
+# 
+# plot(spe.pres,type="s", las=1, col="gray",
+#     main="Richesse spécifique par site",
+#     xlab="Site", ylab="Richesse Spécifique")
+# text(jitter(sit.pres, factor=1, amount=.1), row.names(dat2), cex=.8, col="red")
+# 
 
 ```
 
