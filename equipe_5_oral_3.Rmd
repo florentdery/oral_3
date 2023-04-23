@@ -207,7 +207,7 @@ hist(dat$poissons,
 
 ## Interactions potentielles à tester (étape 5)
 
-Aucune. La question initiale parle plus d'objectifs specifiques en termes d'effets fixes (Clôturé. vs pas Clôturé, ou encore l'effet de l'intensité d'utilisation des vaches). On pose des questions en termes d'effets seuls - pas en interaction. On demande toutefois de prendre en compte les caractéristiques physico-chimiques et biotiques (en tant que covariables).  
+Aucune. La question initiale parle plus d'objectifs specifiques en termes d'effets fixes (Clôturé. vs pas Clôturé, ou encore l'effet de l'intensité d'utilisation des vaches). On pose des questions en termes d'effets seuls - pas en interaction. On demande toutefois de prendre en compte les caractéristiques physico-chimiques et biotiques.  
 
 ```{r boff_interaction, echo = F}
 # dat %>% 
@@ -685,7 +685,7 @@ ggplot(sit.pres)+
   xlab("") +
   scale_y_continuous("Richesse spécifique",
                      breaks= 1:6) +
-    ggtitle("Selon l'ordre des données")+
+    ggtitle("Ordre dans les données")+
   theme_classic() +
   theme(axis.text.x = element_text(angle = 90)),
 
@@ -697,7 +697,7 @@ ggplot()+
   xlab("Site") +
   scale_y_continuous("",
                      breaks= 1:6) +
-  ggtitle("Triés selon leur profondeur")+
+  ggtitle("Peu profond ---> très creux")+
   theme_classic() +
   theme(axis.text.x = element_text(angle = 90)),
 
@@ -709,7 +709,7 @@ ggplot()+
   xlab("") +
   scale_y_continuous("",
                      breaks= 1:6) +
-  ggtitle("Triés selon leur aire")+
+  ggtitle("Moins gros ---> plus gros")+
   theme_classic() +
   theme(axis.text.x = element_text(angle = 90)),
 ncol=3)
@@ -726,23 +726,24 @@ dat%>%
 
 ## Faits saillants de l'exploration des données (étape 6):
 - Les données d'abondance ont été standardisées par unité d'effort et par abondance totale pour chaque espèce. 
-- Les variables Y sont numériques continues, distribuées dans un intervalle allant de 0 à 0,86 (la somme pour chaque espèce est égale à 1). 
-- Il y a énormément de zéros, près de 71% des données de la matrice sont égales à 0, ce qui est un problème pour les données de communautés écologiques. 
-
+  - Les variables Y sont donc numériques continues vont de 0 à 0,86. La somme pour chaque espèce (colonne) est égale à 1. 
+  - Près de 71% des données de la matrice d'abondance sont égales à 0.
+- Certaines variables semblent avoir des mesures erronnées, surtout pour l'oxygène, le pH et des valeurs extrèmes de temperature. 
+- Certaines variables pourraient bénéficier de transformation, particulièrement, la température, les poissons et les écrevisses.
+- Les variables physico-chimiques devront être standardisées
+- Les étangs plus cruex et plus grands semblent avoir une richesse spécifique supérieure. Nous considéreront la topographie des étangs comme des covariables. 
 ## Choix de l'analyse (étape 7)
 
-Nous avons décidé d'utiliser une analyse de redondance partielle pour prendre en compte l'effet de l'aire et de la profondeur des étangs.
+Nous avons décidé d'utiliser une analyse de redondance partielle pour analyser comment la présence de clôture, l'utlisation des étangs par les vaches et les variables physico-chimiques en plus des facteurs abiotiques font varier la communauté d'amphibiens, en prennant en compte l'effet de l'aire et de la profondeur des étangs comme co-variables.
 
 ### Choix de transformation de la matrice d'abondance: 
 Lorsque plusieurs sites partagent la présence d'une espèce, nous savons que ces sites se ressemblent entre eux, (ils partagent les conditions nécessaires à la présence de cette espèce). Par contre, lorsque que plusieurs sites partagent l'absence d'une espèce, nous ne pouvons pas savoir si ces zéros sont dus aux même facteurs (absence réelle ou simplement pas été échantillonnée. Par conséquent, nous ne pouvons pas conclure qu'ils sont aussi ressemblants que s'ils partageaient la présence d'une espèce. 
 
-Il est donc nécessaire de transformer les données à l'aide d'une mesure de **dissimilarité asymétrique** (pour donner davantage de poids à la présence qu'à l'absence de l'espèce). Les transformations les plus recommandées pour un usage général sont les transformations de "Chord" et "Hellinger" (Legendre et Legendre, 2012). 
-Nous choisissons la transformation de Helliger qui obtient le meilleur R^2 (Legendre et Gallagher, 2001).
+Il est donc nécessaire de transformer les données à l'aide d'une mesure de **dissimilarité asymétrique** (pour donner davantage de poids à la présence qu'à l'absence de l'espèce). Les transformations les plus recommandées pour un usage général sont les transformations de "Chord" et "Hellinger" (Legendre et Legendre, 2012). Nous choisissons la transformation de Helliger qui obtient le meilleur R^2 (Legendre et Gallagher, 2001).
 
 2- Transformer les abondances relatives en données de présence-absence (binaire)
 
-Il est recommandé d'utiliser les données de présence-absence lorsque c'est la seule chose disponible ou lorsque nos variables quantitatives sont de qualité inégale ou incertaine (Borcard et al. 2011). Les associations biologiques peuvent être définies sur la base d'une co-occurence des espèces plutôt que sur la co-fluctuation des abondances (Legendre et Lengendre, 2012). 
-Il faut encore une fois transformer les données à l'aide d'un coefficient binaire assymétrique. 
+Il est recommandé d'utiliser les données de présence-absence lorsque c'est la seule chose disponible ou lorsque nos variables quantitatives sont de qualité inégale ou incertaine (Borcard et al. 2011). Les associations biologiques peuvent être définies sur la base d'une co-occurence des espèces plutôt que sur la co-fluctuation des abondances (Legendre et Lengendre, 2012). Il faut encore une fois transformer les données à l'aide d'un coefficient binaire assymétrique. 
 
 
 
