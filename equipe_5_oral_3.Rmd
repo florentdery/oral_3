@@ -728,15 +728,23 @@ dat%>%
 - Les données d'abondance ont été standardisées par unité d'effort et par abondance totale pour chaque espèce. 
   - Les variables Y sont donc numériques continues vont de 0 à 0,86. La somme pour chaque espèce (colonne) est égale à 1. 
   - Près de 71% des données de la matrice d'abondance sont égales à 0.
-- Certaines variables semblent avoir des mesures erronnées, surtout pour l'oxygène, le pH et des valeurs extrèmes de temperature. 
+- Certaines variables indépendantes semblent avoir des mesures erronnées, surtout pour l'oxygène, le pH et quelques des valeurs extrèmes de temperature. 
 - Certaines variables pourraient bénéficier de transformation, particulièrement, la température, les poissons et les écrevisses.
 - Les variables physico-chimiques devront être standardisées
-- Les étangs plus cruex et plus grands semblent avoir une richesse spécifique supérieure. Nous considéreront la topographie des étangs comme des covariables. 
-## Choix de l'analyse (étape 7)
+- Les étangs plus creux et plus grands semblent avoir une richesse spécifique supérieure. La topographie des étangs pourrait influencer d'autres facteurs physico-chimiques, et donc l'aire et la profondeur devraient être considérés comme des covariables. 
 
-Nous avons décidé d'utiliser une analyse de redondance partielle pour analyser comment la présence de clôture, l'utlisation des étangs par les vaches et les variables physico-chimiques en plus des facteurs abiotiques font varier la communauté d'amphibiens, en prennant en compte l'effet de l'aire et de la profondeur des étangs comme co-variables.
+##Étape 7. Choix de l'analyse
 
-### Choix de transformation de la matrice d'abondance: 
+Nous avons décidé d'utiliser une analyse de redondance (RDA) partielle pour analyser comment la présence de clôture, l'utlisation des étangs par les vaches et les variables physico-chimiques en plus des facteurs biotiques font varier la communauté d'amphibiens, en prennant en compte l'effet de l'aire et de la profondeur des étangs comme co-variables.
+
+Les données d'abondances sont loins d'être *Guaussienne*. Les RDAs sont des tests non-paramétriques, donc elles conviennent très bien aux données d'abondance que nous avons. À l'inverse, une MANOVA exige une distribution normalke multivariée. 
+
+On a aussi décidé de faire une RDA partielle car on a des covariables (profondeur et aire) qui ne nous intéressent pas mais qui vont influencer les relations entre les autres variables. 
+
+La RDA est un test statistique basé sur des permutations, ce qui nous permet d'étudier le lien entre une matrice de variables réponse et une matrice de variables expplicative. Les analyses non-contraintes (p. ex. une PCA) sont seulement descriptives: on ne test pas des liens de cause à effet.
+
+### Étape 7. Choix de transformation de la matrice d'abondance: 
+
 Lorsque plusieurs sites partagent la présence d'une espèce, nous savons que ces sites se ressemblent entre eux, (ils partagent les conditions nécessaires à la présence de cette espèce). Par contre, lorsque que plusieurs sites partagent l'absence d'une espèce, nous ne pouvons pas savoir si ces zéros sont dus aux même facteurs (absence réelle ou simplement pas été échantillonnée. Par conséquent, nous ne pouvons pas conclure qu'ils sont aussi ressemblants que s'ils partageaient la présence d'une espèce. 
 
 Il est donc nécessaire de transformer les données à l'aide d'une mesure de **dissimilarité asymétrique** (pour donner davantage de poids à la présence qu'à l'absence de l'espèce). Les transformations les plus recommandées pour un usage général sont les transformations de "Chord" et "Hellinger" (Legendre et Legendre, 2012). Nous choisissons la transformation de Helliger qui obtient le meilleur R^2 (Legendre et Gallagher, 2001).
@@ -745,33 +753,46 @@ Il est donc nécessaire de transformer les données à l'aide d'une mesure de **
 
 Il est recommandé d'utiliser les données de présence-absence lorsque c'est la seule chose disponible ou lorsque nos variables quantitatives sont de qualité inégale ou incertaine (Borcard et al. 2011). Les associations biologiques peuvent être définies sur la base d'une co-occurence des espèces plutôt que sur la co-fluctuation des abondances (Legendre et Lengendre, 2012). Il faut encore une fois transformer les données à l'aide d'un coefficient binaire assymétrique. 
 
+## Étape 8.0 Exécuter l'analyse 
 
+A- On commence par transformer les matrices d'abondance. 
 
-## Exécuter l'analyse (étape 8)
-
-```{r RDA}
+```{r hellinger_tranformation, message=FALSE}
 library("vegan")
-source("panelutils.R")
 #library(adespatial)
 # Faire une matrice de distance Hellinger
 
 # Alternate, two-step computation in vegan: 
 amphi.hel= dat%>% 
-    subset(oxygene>0) %>% # on enlève les sites avec l'oxygène à 0
+    subset(oxygene>0) %>% 
+  # on enlève les sites avec l'oxygène à 0 ^^
   select(A_Gr:N_Vi) %>% 
   decostand("hellinger")
 
-rownames(amphi.hel) <- subset(dat, oxygene>0)$etang# On change le nom des lignes pour se retrouver plus tard
-
+rownames(amphi.hel) <- subset(dat, oxygene>0)$etang
+# On change le nom des lignes pour se retrouver plus tard ^^
 head(amphi.hel)
+```
 
+## Étape 8.0 Exécuter l'analyse 
+ 
+B- On standardize les covariables.
+
+```{r standardize_covariables, results="hide"}
 # Co-variables
 topo=dat %>% 
     subset(oxygene>0) %>% 
   select(aire, profondeur) %>% 
   decostand("standardize")
-rownames(topo) <- subset(dat, oxygene>0)$etang
 
+rownames(topo) <- subset(dat, oxygene>0)$etang
+# On change le nom des lignes pour se retrouver plus tard ^^
+```
+## Étape 8.0 Exécuter l'analyse 
+
+C- Les variables.<br>Ici on a seulement standardisée les variables, mais on a aussi joint une RDA partielle réalisée avec des variables environnementales transformées avant d'être standardisées. 
+
+```{r standardize_variables, results="hide"}
 env=dat %>% 
   select( vache_std, 
           conductivite:temperature,
@@ -780,24 +801,77 @@ env=dat %>%
   decostand("standardize") 
 
 env=cbind(subset(dat, oxygene>0)$cloture, 
-          env) %>% # on rattache la variable cloture, qui n'est pas standardisée
-  rename(cloture= `subset(dat, oxygene > 0)$cloture`)
+          env) %>% 
+  # on rattache la variable cloture, qui n'est pas standardisée (catégorique)^^
+  rename(cloture= `subset(dat, oxygene > 0)$cloture`) # un nom qui a de l'allure.
 
 rownames(env) <- subset(dat, oxygene>0)$etang
+# On change le nom des lignes pour se retrouver plus tard ^^
+```
 
-# Analyse de redondance
-prda=rda(amphi.hel~ . + Condition(topo$aire +topo$profondeur), env) 
+## Étape 8.1 Exécuter l'analyse 
+On lance la RDA partielle: 
 
-source("triplot.rda.R")
-dev.off()
+```{r RDA_launched, message=FALSE}
+require(vegan)
+(prda=rda(amphi.hel~ . + Condition(topo$aire +topo$profondeur), env) )
+```
 
+## Étape 8.1 Exécuter l'analyse 
+
+Donc, *avant* de valider si l'analyse a bien fonctionné, on peu voir dans le output de la RDA que près de 10% de la variance dans l'abondance est expliquée par les covariables, et environ 37% par les variables environnementales. <br> Par contre, ces pourcentages de variance expliqué sont biaisés. Effectivement,lorsqu'on utilise un R² ajusté, la variation expliquée par les variables environnementales tombent à :
+
+```{r RDA_code, message=FALSE, eval=F}
+ (R2adj <- round(RsquareAdj(prda)$adj.r.squared, dig=3))
+
+```
+Plus modeste! Aussi, ça concorde un peu plus avec la comparaison des premières valeurs propres de la RDA et de la PCA sur la variation résiduelle, qui sont pas mal similaires. 
+
+## Étape 8.2 Valider l'analyse 
+
+Test de permutation du modèle global: 
+```{r RDA_check_model}
+#source("panelutils.R")
 anova(prda, permutations = how(nperm = 999))
-anova(prda, by="axis", permutations = how(nperm = 999))
-anova(prda, by="term", permutations = how(nperm = 999))
+```
+Ceci nous indique que le modèle a quand même une certaine valeur, il permet d'expliquer une proportion de la variance dans les communautés d'abondances
 
+
+## Étape 8.2 Valider l'analyse 
+
+Test de permutations sur les axes:
+```{r RDA_check_axis}
+anova(prda, by="axis", permutations = how(nperm = 999))
+```
+Seulement le premier axe de la RDA est *significatif*
+
+
+## Étape 8.2 Valider l'analyse 
+
+Tests de permutations sur les variables explicatives
+
+```{r RDA_checks_terms}
+anova(prda, by="term", permutations = how(nperm = 999))
+```
+
+Les variables clôture, nitrates, temperature et poissons sont celles qui semblent mieux expliquer la variance dans la matrice d'abondances des amphibiens. Il pourrait être envisageable de faire une sélection forward des variables pour réduire le nombre de variables dans la RDA et ainsi mieux obtenir la proportion de variance influencée par les variables explicatives pertinentes.  
+
+
+## Étape 8.2 Valider l'analyse 
+
+Vérifier s'il y a de la collinéarité entre les variables explicatives:
+```{r RDA_checks_vif}
 vif.cca(prda)
+```
+Tout est bien. 
+
+## Étape 8.3 Interpréter les résultats 
+
+```{r RDA_triplots}
+source("triplot.rda.R")
 
 par(mfrow=c(1,2))
+
 triplot.rda(prda, scaling=1, 
             move.origin=c(0, 0), 
             mar.percent=0.05,
@@ -809,7 +883,161 @@ triplot.rda(prda, scaling=2,
 
 ```
 
+## Matériel supplémentaire
 
-## Choix de l'analyse (étape 7)
+On a voulu vérifier si la transformation des variables environnementales influençait les résultats de la RDA. 
+option 1, on log des variables avant de les transformer
 
-## Exécuter l'analyse (étape 8)
+```{r transform_n_standardize_variables, results="hide"}
+topo=dat %>% 
+    subset(oxygene>0) %>% 
+  select(aire, profondeur) %>% 
+  decostand("standardize")
+
+rownames(topo) <- subset(dat, oxygene>0)$etang
+# On change le nom des lignes pour se retrouver plus tard ^^
+
+# Valeurs extrèmes dans les paramètres ####
+
+# temperature
+dat %>% 
+  subset(temperature>30) %>% 
+  select(etang, vache_std, cloture,
+         conductivite:temperature,
+         aire, profondeur)
+
+dat %>% 
+  subset(temperature>30) %>% 
+  select(etang, temperature, invertebres:poissons) 
+
+#Donc les valeurs de temperatures élevées sont dans les étangs les plus petits et moins profonds. Rassurant, et ce ne sont probablement pas des valeurs erronées.  
+# Ces deux étangs ont aussi des valeurs dans  le 1er quantile et des concentrations d'oxygène dans le 3e quantile.
+
+
+
+# pH
+
+dat %>% 
+  subset(pH<4|pH>9) %>% 
+  select(etang, vache_std, cloture,
+         conductivite:temperature,
+         aire, profondeur)
+
+dat %>% 
+  subset(pH<4|pH>9) %>% 
+  select(etang, pH, invertebres:poissons) # effectivement, dur de dire ce qu'il s'est passé, mais même avec un pH de 1.38, des poissons ont été comptés dans l'étang  # 155
+
+# Tranformation ####
+
+# Jetter un coup d'oeil aux options de transformation pour la température, les poissons et les écrevisses.
+
+par(mfrow=c(2,3))
+dat$temperature %>% 
+hist(main="temperature")
+log(dat$temperature) %>% 
+hist(main="ln(temperature)")
+
+log(dat$temperature+0.001) %>% 
+hist(main="ln(temperature+0.001)")
+log(dat$temperature+0.01) %>% 
+hist(main="ln(temperature+0.01)")
+log(dat$temperature+0.1) %>% 
+hist(main="ln(temperature+0.1)")
+log(dat$temperature+1) %>% 
+hist(main="ln(temperature+1)")
+
+library(MASS)
+b <- boxcox(lm(dat$temperature ~ 1))
+# Exact lambda
+lambda <- b$x[which.max(b$y)]
+lambda
+
+par(mfrow=c(1,2))
+
+sqrt(dat$temperature) %>% 
+hist(main="sqrt(temperature)")
+hist(((dat$temperature^lambda)-1)/lambda , 
+     main="temperature box-cox(lambda=-2)")
+ # temperature, pas évident, mais peu importe les transformations la distribution la plus belle est l'originale. 
+# restons avec les valeurs originales.
+
+# Poissons:
+par(mfrow=c(2,3))
+
+dat$poissons %>% 
+hist(main="poissons")
+
+log(dat$poissons+0.001) %>% 
+hist(main="ln(poissons+0.001)")
+
+log(dat$poissons+0.01) %>% 
+hist(main="ln(poissons+0.01)")
+
+log(dat$poissons+0.1) %>% 
+hist(main="ln(poissons+0.1)")
+
+log(dat$poissons+1) %>% 
+hist(main="ln(poissons+1)")
+
+sqrt(dat$poissons) %>% 
+hist(main="sqrt(poissons)")
+
+ # poissons, pas évident, il y a beaucoup de 0. Peu importe les transformations la distribution la plus belle est l'originale. 
+# restons avec les valeurs originale, ou encore on peut créer une variable binaire. 
+
+# ecrevisses:
+par(mfrow=c(2,3))
+
+dat$ecrevisses %>% 
+hist(main="ecrevisses")
+
+log(dat$ecrevisses+0.001) %>% 
+hist(main="ln(ecrevisses+0.001)")
+
+log(dat$ecrevisses+0.01) %>% 
+hist(main="ln(ecrevisses+0.01)")
+
+log(dat$ecrevisses+0.1) %>% 
+hist(main="ln(ecrevisses+0.1)")
+
+log(dat$ecrevisses+1) %>% 
+hist(main="ln(ecrevisses+1)")
+
+sqrt(dat$ecrevisses) %>% 
+hist(main="sqrt(ecrevisses)")
+
+ # ecrevisses, pas évident, il y a beaucoup de 0. Peu importe les transformations la distribution ne s'améliore pas beaucoup. restons avec les valeurs originale, ou encore on peut créer une variable binaire. 
+
+
+
+env2=dat %>% 
+  select( cloture, 
+          vache_std, 
+          conductivite:temperature,
+          invertebres:poissons) %>%
+  subset(oxygene>0) %>% 
+  decostand("standardize") 
+
+env2=cbind(subset(dat, oxygene>0)$cloture, 
+          env2) %>% 
+  # on rattache la variable cloture, qui n'est pas standardisée (catégorique)^^
+  rename(cloture= `subset(dat, oxygene > 0)$cloture`)+ # un nom qui a de l'allure.
+  mutate(poiss_bin=ifelse(poissons>0, "Yes", "No"),
+         ecre_bin=ifelse(ecrevisses>0, "Yes", "No")) %>% 
+  select(-poissons, -ecrevisses)
+
+rownames(env) <- subset(dat, oxygene>0)$etang
+# On change le nom des lignes pour se retrouver plus tard ^^
+```
+
+## Étape 8.1 Exécuter l'analyse 
+On lance la RDA partielle: 
+
+```{r scnd_RDA_launched, message=FALSE}
+require(vegan)
+(prda2=rda(amphi.hel~ . + Condition(topo$aire +topo$profondeur), env) )
+```
+
+
+
+
