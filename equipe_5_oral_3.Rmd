@@ -715,7 +715,6 @@ ggplot()+
 ncol=3)
 ```
 
-
 ## 6.8 - Collinéarité des Y
 
 ```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=4.3, fig.align="center"}
@@ -737,7 +736,7 @@ dat%>%
 
 Nous avons décidé d'utiliser une analyse de redondance (RDA) partielle pour analyser comment la présence de clôture, l'utlisation des étangs par les vaches et les variables physico-chimiques en plus des facteurs biotiques font varier la communauté d'amphibiens, en prennant en compte l'effet de l'aire et de la profondeur des étangs comme co-variables.
 
-Les données d'abondances sont loins d'être *Guaussienne*. Les RDAs sont des tests non-paramétriques, donc elles conviennent très bien aux données d'abondance que nous avons. À l'inverse, une MANOVA exige une distribution normalke multivariée. 
+Les données d'abondances sont loins d'être *Gaussienne*. Les RDAs sont des tests non-paramétriques, donc elles conviennent très bien aux données d'abondance que nous avons. À l'inverse, une MANOVA exige une distribution normalke multivariée. 
 
 On a aussi décidé de faire une RDA partielle car on a des covariables (profondeur et aire) qui ne nous intéressent pas mais qui vont influencer les relations entre les autres variables. 
 
@@ -1008,25 +1007,28 @@ hist(main="sqrt(ecrevisses)")
 
  # ecrevisses, pas évident, il y a beaucoup de 0. Peu importe les transformations la distribution ne s'améliore pas beaucoup. restons avec les valeurs originale, ou encore on peut créer une variable binaire. 
 
-
-
 env2=dat %>% 
-  select( cloture, 
-          vache_std, 
+  select( vache_std, 
           conductivite:temperature,
-          invertebres:poissons) %>%
+          invertebres) %>%
   subset(oxygene>0) %>% 
   decostand("standardize") 
 
-env2=cbind(subset(dat, oxygene>0)$cloture, 
-          env2) %>% 
-  # on rattache la variable cloture, qui n'est pas standardisée (catégorique)^^
-  rename(cloture= `subset(dat, oxygene > 0)$cloture`)+ # un nom qui a de l'allure.
-  mutate(poiss_bin=ifelse(poissons>0, "Yes", "No"),
-         ecre_bin=ifelse(ecrevisses>0, "Yes", "No")) %>% 
-  select(-poissons, -ecrevisses)
+tmp=dat %>% 
+  select(cloture, poissons, ecrevisses, oxygene) %>% 
+    subset(oxygene>0) %>% 
+  mutate(poiss_bin=case_when(poissons>0~ "Yes", 
+                             T~"No"),
+         ecre_bin=case_when(ecrevisses>0~"Yes", 
+                         T~"No")) %>% 
+  mutate_at(.vars=c("poiss_bin", "ecre_bin"), factor) %>% 
+  select(-poissons, -ecrevisses, -oxygene)
 
-rownames(env) <- subset(dat, oxygene>0)$etang
+env2=cbind(tmp, 
+          env2) 
+rm(tmp)
+  # on rattache les variables catégoriques ^^
+rownames(env2) <- subset(dat, oxygene>0)$etang
 # On change le nom des lignes pour se retrouver plus tard ^^
 ```
 
@@ -1035,9 +1037,35 @@ On lance la RDA partielle:
 
 ```{r scnd_RDA_launched, message=FALSE}
 require(vegan)
-(prda2=rda(amphi.hel~ . + Condition(topo$aire +topo$profondeur), env) )
+(prda2=rda(amphi.hel ~ . + Condition(topo$aire +topo$profondeur), env2) )
 ```
 
+```{r RDA_code, message=FALSE, eval=F}
+ (R2adj_2 <- round(RsquareAdj(prda2)$adj.r.squared, dig=3))
+
+anova(prda2, permutations = how(nperm = 999))
+
+anova(prda2, by="axis", permutations = how(nperm = 999))
+
+anova(prda2, by="term", permutations = how(nperm = 999))
+
+vif.cca(prda2)
+
+
+source("triplot.rda.R")
+
+par(mfrow=c(1,2))
+
+triplot.rda(prda2, scaling=1, 
+            move.origin=c(0, 0), 
+            mar.percent=0.05,
+            silent=T)
+triplot.rda(prda2, scaling=2, 
+            move.origin=c(0, 0), 
+            mar.percent=0.05,
+            silent=T)
+
+```
 
 
 
