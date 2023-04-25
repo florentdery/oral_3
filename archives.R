@@ -71,3 +71,10 @@
 #    line1, 
 #    line2, 
 #    line3)
+
+
+Les données d'abondances sont loins d'être *Gaussienne*. Les RDAs sont des tests non-paramétriques, donc elles conviennent très bien aux données d'abondance que nous avons. À l'inverse, une MANOVA exige une distribution normale multivariée. 
+
+On a aussi décidé de faire une RDA partielle car on a des covariables (profondeur et aire) qui ne nous intéressent pas mais qui vont influencer les relations entre les autres variables. 
+
+La RDA est un test statistique basé sur des permutations, ce qui nous permet d'étudier le lien entre une matrice de variables réponse et une matrice de variables expplicative. Les analyses non-contraintes (p. ex. une PCA) sont seulement descriptives: on ne test pas des liens de cause à effet.
