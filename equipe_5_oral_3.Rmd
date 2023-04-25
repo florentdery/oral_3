@@ -16,67 +16,82 @@ pre {
     font-size: 10px;
 }
 </style>
-## Contexte
+## Contexte, objectif et question de recherche (étape 1)
 
-Choix de projet = Effets des pâturages sur l'abondance et la diversité des amphibiens.
+Les pâturages occupent actuellement 26% des surfaces terrestres libres de glaces et cette proportion est appelée à augmenter. Il est essentiel de comprendre l'impact du bétail sur la faune et la flore sauvages afin d’atténuer la perte de biodiversité mondiale due à l’augmentation de la superficie de terres converties en pâturages pour le bétail.
 
-Invertebrés vs sensibilité / eutrophisation
-Écrevisses vs sensibilité / eutrophisation
-Poisson ?? 
+*Objectif :*
+La présente étude cherche à quantifier les impacts du pâturage du bétail sur l'abondance et la diversité des amphibiens dans les zones agricoles du centre-sud de la Floride.
 
-## Objectif et question de recherche (étape 1)
+*Questions :*
+1. Est-ce que la communauté d’amphibiens diffère entre les étangs dont le bétail est exclu de ceux non-exclu?
+2. Est-ce que l’intensité de l’utilisation par le bétail affecte la communauté d’amphibiens en prenant en compte les variables environnementales et la communauté animale?
+3. Quelle sont les variables les plus influentes sur la communauté d’amphibiens et combien de variation ces variables expliquent-elles?
 
-Vérifier l'impact du pâturage par le bétail (vaches) sur les communautés d'amphibiens. 
+*Objectif :* 
+Vérifier l'impact du pâturage par le bétail (vaches) sur les communautés d'amphibiens d'étangs du Centre-Sud de la Floride, É.-U. 
 
-## Hypothèses et prédictions (étape 2) | sous-titre
-### sous titre ???
-
-La présence et l'intensité d'M'utilisation du bétail modifient les conditions physico-chimiques des étangs, et ainsi l'abondance des invertébrés, poissons et écrevisses, ce qui détermine la composition des communautés amphibiennes. 
-
-
+### Hypothèses et prédictions (étape 2) 
+La présence et l'intensité d'utilisation du bétail modifient les conditions physico-chimiques des étangs, et ainsi l'abondance des invertébrés, poissons et écrevisses, ce qui détermine la composition des communautés amphibiennes. 
 Prédictions: 
-- Les conditions physico-chimiques sont différentes entre les étangs cloturés vs non-cloturés. 
-  - Les vaches seront corrélées positivement aux nitrites
-  - Les vaches seront corrélées positivement à la *temperature*?
-  - Les vaches seront corrélées positivement à la conductivité
-  - Les vaches seront corrélées négativement au pH
-  - Les vaches seront corrélées négativement à l'O^2
+
+* Les conditions physico-chimiques sont différentes entre les étangs cloturés vs non-cloturés. 
+    + Les vaches seront corrélées positivement aux nitrites
+    + Les vaches seront corrélées positivement à la *temperature*?
+    + Les vaches seront corrélées positivement à la conductivité
+    + Les vaches seront corrélées négativement au pH
+    + Les vaches seront corrélées négativement à l'O² 
+* Les espèces généralistes seront présentes dans tous les sites car elles sont tolérantes à une grande étendue de conditions.  
+    + À l'inverse, les espèces fragiles ou spécialistes occuperont des sites avec des conditions optimales
+  
+## Variables du système (étape 3)
+Le jeu de données contient cinq *composantes*:
+
+* les variables reliées au *pâturage*
+* les caractéristiques physico-chimiques
+* les facteurs biotiques 
+* les caractéristiques topographiques
+* la matrice d'abondance des amphibiens
+
+Jettons un coup d'oeil à la structure (`glimpse()`) puis au `summary()` du jeu de données:
 
 ## Variables du système (étape 3)
-
-- Modèle conceptuel?
-Voici le jeu de données : 
-
-```{r load_dat, echo=F, warnings=F, message=F}
+```{r load_n_glimpse_dat, echo=F, warnings=F, message=F}
 require(tidyverse)
 dat=read.delim("data/jeu_ecologique.txt") %>% 
   mutate(etang=as.factor(as.character(etang)),
          cloture=factor(cloture)) %>% 
   rename(vache_std=vache) %>% 
   arrange(aire) 
-
 glimpse(dat)
-summary(dat)
-
 ```
-
+## Variables du système (étape 3)
+```{r summary_dat_xs, echo=F, warnings=F, message=F}
+summary(dat[,1:13])
+```
+## Variables du système (étape 3)
+```{r summary_dat_ys, echo=F, warnings=F, message=F}
+summary(dat[,14:22])
+```
 ## Rôle, type et distribution des variables (étape 4)
-Jettons un coup d'oeil premièrement à la variable dépendante, représentée par une matrice d'abondance de la communauté amphibienne. Les colonnes représentent les espèces, et les lignes représentent les sites. 
+La variable dépendante (Y) est représentée par une matrice d'abondances d'amphibiens. Les données d'abondance ont été standardisées par unité d'effort et par abondance totale pour chaque espèce. 
 
-```{r step_4_quick_look_to_Ys, echo=T, warnings=F, message=F}
+* Les valeurs d'abondance relative sont entre 0 et 0.86. 
+* Les zéros (absences) composent 70.5% de la matrice. 
+
+```{r format_Ys, echo=F, warnings=F, message=F}
 amphi<-dat %>% 
   select(etang,A_Gr:N_Vi) %>% 
   column_to_rownames("etang")
-# Étendue
-range(amphi)
-# Nombre de zéros, puis proportion de zéros dans la communauté
-sum(amphi==0) ; sum(amphi==0)/(nrow(amphi)*ncol(amphi))
 ```
-Les valeurs d'abondance relative sont entre 0 et 0.86. 
-Les zéros (absences) composent 70.5% de la matrice. Les données d'abondance ont été standardisées par unité d'effort et par abondance totale pour chaque espèce. 
+
+```{r step_4_quick_look_to_Ys, echo=F, warnings=F, message=F, eval=F}
+range(amphi)# Étendue
+sum(amphi==0) ; sum(amphi==0)/(nrow(amphi)*ncol(amphi))# Nombre de zéros, puis proportion de zéros dans la communauté
+```
 
 ## Étape 4 - distribution des Ys
-```{r distribution_ys,  echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(10,4.3) }
+```{r distribution_ys,  echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(10,5) }
 amphi %>% 
   pivot_longer(1:9,names_to = "espece", values_to = "prop") %>% 
   mutate(lng_nm=case_when(espece=="A_Gr"~ "Acris gryllus",
@@ -96,8 +111,10 @@ ggplot(aes(prop))+
 ```
 
 ## Étape 4 - Variables indépendantes X
-La variable indépendante "cloture" est une variable catégorique à 2 facteurs (Yes, No). 
-La variable "Intensité d'utilisation de l'étang par le bétail" est une variable numérique continue dont la distribution [min ; max = 0 ; 0.6] est biaisée à gauche. 
+
+* La variable `cloture` est une variable catégorique à deux facteurs (Yes, No). 
+* La variable `vache_std` (Intensité d'utilisation de l'étang par le bétail) est une variable numérique continue dont la distribution [min ; max = 0 ; 0.6] est biaisée à gauche.
+* 5 étangs sont clôturés ; 35 étangs ne l'étaient pas. Parmi ces derniers, 3 étangs ne semblent pas avoir été utilisés par les vaches (`vache_std`=0)
 
 ```{r distribution_xs,  echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(10,4) }
 p1= ggplot(dat, aes(cloture, fill=cloture))+
@@ -120,13 +137,13 @@ require(patchwork)
 
 p1 + p2 + plot_layout(ncol=2, widths=c(0.33, .67))
 ```
-5 étangs sont clôturés, 35 étangs ne l'étaient pas. Parmi les étangs non-cloturés, 3 étangs ne semblent pas avoir été utilisés par les vaches (pas de fèces)
 
-## Étape 4 - Covariables | Caractéristiques physico-chimiques -> non-standardisées
-- Conductivité: numérique continue, distribution normale
-- Nitrates: numérique continue, distribution déviée à gauche
-- Température (Celcius): numérique continue, distribution déviée à gauche
-  - Quelques valeurs extrèmes
+## Étape 4 - Variables | Caractéristiques physico-chimiques
+
+* `conductivite`: numérique continue, distribution normale
+* `nitrates` : numérique continue, distribution déviée à gauche
+* `temperature` (Celcius): numérique continue, distribution déviée à gauche
+    + Quelques valeurs extrèmes **-> on y reviendra!**
 
 ```{r distribution_covariables_chim_a,  echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
 par(mfrow=c(1,3))
@@ -144,12 +161,12 @@ hist(dat$temperature,
      col="cornflowerblue")
 range(dat$pH)
 ```
-## Étape 4 - Covariables | Caractéristiques physico-chimiques
+## Étape 4 - Variables | Caractéristiques physico-chimiques
 
-- Oxygène: numérique continue, distribution normale
-  - Il y a des valeurs négatives!!!  
-- pH: numérique continue, distribution déviée à gauche
-  - Des étangs sont plus acides que du jus de citron, et presqu'aussi basiques que de l'eau de Javel! 
+* Oxygène: numérique continue, distribution normale
+    + Il y a des valeurs négatives!!!  **-> on y reviendra!**
+* pH: numérique continue, distribution déviée à gauche
+    + Des étangs sont plus acides que du jus de citron, et presqu'aussi basiques que de l'eau de Javel! **-> on y reviendra!**
 ```{r distribution_covariables_chim_b,  echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(10,4.3) }
 par(mfrow=c(1,2))
 hist(dat$oxygene,
@@ -163,8 +180,9 @@ hist(dat$pH,
 ```
 
 ## Étape 4 - Covariables | Caractéristiques topographiques
-- Profondeur (cm): numérique continue, distribution normale
-- Aire (m^2): numérique continue, distribution *relativement* normale
+
+* Profondeur (cm): numérique continue, distribution normale
+* Aire (m²): numérique continue, distribution *relativement* normale
 
 ```{r distribution_covariables_topo,  echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(10,4.3) }
 par(mfrow=c(1,2))
@@ -178,11 +196,11 @@ hist(dat$aire,
      col="cornflowerblue")
 ```
 
-## Étape 4 - Covariables | Facteurs biotiques
+## Étape 4 - Variables | Facteurs biotiques
 
-- Invertébrés: numérique continue, distribution déviée à gauche
-- Écrevisses: numérique continue, distribution déviée à gauche avec beaucoup de zéros
-- Poissons: numérique continue, distribution avec beaucoup de zéros
+* Invertébrés: numérique continue, distribution déviée à gauche
+* Écrevisses: numérique continue, distribution déviée à gauche avec beaucoup de zéros **-> on y reviendra!**
+* Poissons: numérique continue, distribution avec beaucoup de zéros **-> on y reviendra!**
 
 ```{r distribution_covariables_biotiques,  echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
 par(mfrow=c(1,3))
@@ -204,39 +222,14 @@ hist(dat$poissons,
 
 ```
 
-
 ## Interactions potentielles à tester (étape 5)
 
-Aucune. La question initiale parle plus d'objectifs specifiques en termes d'effets fixes (Clôturé. vs pas Clôturé, ou encore l'effet de l'intensité d'utilisation des vaches). On pose des questions en termes d'effets seuls - pas en interaction. On demande toutefois de prendre en compte les caractéristiques physico-chimiques et biotiques.  
+Aucune. 
 
-```{r boff_interaction, echo = F}
-# dat %>% 
-#   mutate(prof_cat=factor(
-#     case_when(
-#       profondeur < 181 ~ "very_shallow", 
-#       profondeur %in% c(181:242)~ "shallow",
-#       profondeur %in% c(243:330)~ "medium",
-#       profondeur %in% c(331:460)~ "deep",
-#       profondeur > 460 ~ "very_deep"    
-#     ), levels= c("very_shallow", 
-#                  "shallow",
-#                  "medium",
-#                  "deep",
-#                  "very_deep")))%>% 
-#   pivot_longer(A_Gr:N_Vi, names_to = "espece", values_to = "prop") %>% 
-#   pivot_longer(conductivite:pH, names_to = "parametre", values_to = "mesure") %>% 
-#   ggplot()+
-#   geom_point(aes(x= mesure, y= prop, color=espece)) +
-#   facet_grid(vars(cloture), vars(prof_cat), scales= "free_x", space="free_x")+
-#   ylab("Proportion par site")+
-#   xlab("Mesure du paramètre")
-```
+## Exploration des données (étape 6) - Données aberrantes en X (6.1) 
 
-## Exploration des données (étape 6)
-
-## 6.1 - Données aberrantes en X 
-- Les valeurs de vache_std sont entre 0 et 0.575
-- Il ne semble pas y avoir de données aberrantes, mais 3 étangs non-clôturés ne semblent pas avoir été visités par les vaches. 
+* Les valeurs de vache_std sont entre 0 et 0.575
+* Il ne semble pas y avoir de données aberrantes, mais 3 étangs non-clôturés ne semblent pas avoir été visités par les vaches. 
 
 ```{r abberent_Xs_vache, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
 range(dat$vache_std) 
@@ -325,7 +318,7 @@ plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
 
 ## 6.1 - Données aberrantes en X 
 
-En ce qui concerne les poissons et les écrevisses, i8l semble y avoir beaucoup de zéros. Il faudra peut-être transformer (e.g. log) les variables poissons et écrevisses. Les écrevisses étant des prédateurs des grenouilles (tétards), on pourrait peut-être travailler en absence-présence d'écrevisses dans nos analyses, si cette variable est problématique.  
+En ce qui concerne les poissons et les écrevisses, il semble y avoir beaucoup de zéros. Il faudra peut-être transformer (e.g. log) les variables poissons et écrevisses. Les écrevisses étant des prédateurs des grenouilles (tétards), on pourrait peut-être travailler en absence-présence d'écrevisses dans nos analyses, si cette variable est problématique.  
 
 ```{r aberrant_Xs_biotiques, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
 living<-dat[ , c("invertebres", "poissons", "ecrevisses")]
@@ -362,7 +355,6 @@ On a déjà jetté un coup d'oeil à la distribution des abondances relatives d'
 amphi<-dat %>% 
   select(etang,A_Gr:N_Vi) %>% 
   column_to_rownames("etang") 
-
 
 l1=function () {
 par(
@@ -486,16 +478,13 @@ Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit Normale non
 
 Comme on a vu plus tôt à l'étape 4 les zéros (absences) composent 70.5% de la matrice. Il se pourrait d'ailleurs que la faible présence de certaines espèces (H_Fe, N_Vi et A_GR) pose des problèmes pour l'analyse visée. 
 
-
 ## 6.5 - Collinéarité des X
 Premièrement avec les étangs non cloturés: 
 ```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=5.3}
 dat %>% 
-  subset(cloture=="No" & vache_std>0) %>% 
   select(vache_std:poissons) %>%
   relocate(aire, .after = profondeur) %>% 
   psych::pairs.panels()
-
 ```
 
 ## 6.5 - Collinéarité des X
@@ -984,10 +973,7 @@ amphi.parsi
 par(mfrow= c(1,1))
 plot(amphi.parsi, digits=2, bg = c("red", "blue"),Xnames = c("Clôtures",  "Poissons"))
 
-
-
 ```
-
 
 ## Matériel supplémentaire | Effet de quelques variables moins discipliniés
 
