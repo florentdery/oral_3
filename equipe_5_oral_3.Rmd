@@ -258,7 +258,9 @@ plot_grid(p6,p4, ncol=2)+
 ```
 
 ## 6.1 - Données aberrantes en X 
-- O2: Il y a des valeurs négatives!!!  
+
+* O²: Il y a des valeurs négatives!!!  
+    + pour la suite de nos analyses, nous avons décidé de retirer les sites ayant des valeurs d'oxygène inférieur à 0. Ces valeurs sont 
 - pH: Des étangs sont plus acides que du jus de citron, et presqu'aussi basiques que de l'eau de Javel! 
 
 ```{r abberent_Xs_physico, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
@@ -286,10 +288,18 @@ library(gridGraphics); library(cowplot)
 plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
 
 ```
+## 6.1 - Données aberrantes en X 
+
+* O²
+    + Pour la suite de nos analyses, nous avons décidé de retirer les sites (n=2) ayant des valeurs d'oxygène inférieures à 0. Ces valeurs sont vraissemblablement des erreurs de mesures, on ne peut pas assumer qu'elles étaient à 0, ou à une autre valeur. 
+* pH
+    + Dans la section "Matériel supplémentaire", nous avons vérifié les valeurs de pH supérieures à 9 et inférieures à 4. 
+      - Rien ne semblait anormal au niveau des autres paramètres mesurés à ces étangs, sauf peut-être la présence de poissons mêmne lorsque le pH était de 1.88. Ceci nous pousse à croire que la variable pH n'est probablement pas fiable. 
+      - *Pour la suite, nous allons ignorer les variables de pH pour les analyses*
 
 ## 6.1 - Données aberrantes en X 
 
-Il ne semble pas particulièrement y avoir de données aberrantes en ce qui concerne la topographie des étangs
+Pas de données particulièrement aberrantes en ce qui concerne la topographie des étangs
 
 ```{r aberrant_Xs_topo, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
 Top<-dat[ , c(4, 10)]
@@ -318,9 +328,12 @@ plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
 
 ## 6.1 - Données aberrantes en X 
 
-En ce qui concerne les poissons et les écrevisses, il semble y avoir beaucoup de zéros. Il faudra peut-être transformer (e.g. log) les variables poissons et écrevisses. Les écrevisses étant des prédateurs des grenouilles (tétards), on pourrait peut-être travailler en absence-présence d'écrevisses dans nos analyses, si cette variable est problématique.  
+* En ce qui concerne les poissons et les écrevisses, il semble y avoir beaucoup de zéros. Il faudra peut-être transformer les variables poissons et écrevisses. comme on a tenté de le faire, sans grand succès, à la section "Matériel supplémentaire". 
+* Les écrevisses étant des prédateurs des grenouilles (tétards), on pourrait peut-être travailler en absence-présence d'écrevisses dans nos analyses, si cette variable est problématique. 
+* On a vérifié l'influence de travailler avec des variables binaires pour les comptes de poissons et d'écrevisses à la section "Matériel supplémentaire". 
 
-```{r aberrant_Xs_biotiques, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
+*Pour la suite, nous travaillerons avec les données originales*, qu'on remet graphiquement ici:
+```{r aberrant_Xs_biotiques, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,3) }
 living<-dat[ , c("invertebres", "poissons", "ecrevisses")]
 
 l1=function () {
@@ -332,7 +345,6 @@ for(i in 1:ncol(living)) {
   hist(living[,i], main=names(living)[i], breaks=30)
 } 
 }
-
 
 l2=function () {
 par(
@@ -349,164 +361,104 @@ plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
 
 ## 6.1 - Données aberrantes en Y
 
-On a déjà jetté un coup d'oeil à la distribution des abondances relatives d'amphibien à l'étape 4. Le voici en rappel avec des boxplots. 
+* On a déjà jetté un coup d'oeil à la distribution des abondances relatives d'amphibien à l'étape 4. Le voici en rappel, mais seulement avec des boxplots. 
+* Pas vraiment de données aberrantes (beaucoup de 0, mais pas aberrant en soi), si ce n'est que de quelques espèces rares. 
 
 ```{r aberrant_Ys, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(10,5) }
 amphi<-dat %>% 
   select(etang,A_Gr:N_Vi) %>% 
   column_to_rownames("etang") 
-
-l1=function () {
-par(
-  mfrow=c(1,3),
-    mar=c(1,1,1,1)
-  )
-for(i in 1:3) {
-  hist(amphi[,i], main=names(amphi)[i], breaks=30)
-}
-}
-
-l2=function () {
-par(
-  mfrow=c(1,3),
-    mar=c(2,1,1,1)
-  )
-for(i in 1:3) {
-  boxplot(amphi[,i], main=NULL, horizontal=T)
-}
-}
-
-line1=plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.7 , .3))
-l3=function () {
-par(
-  mfrow=c(1,3),
-    mar=c(1,1,1,1)
-  )
-for(i in 4:6) {
-  hist(amphi[,i], main=names(amphi)[i], breaks=30)
-}
-}
-
-l4=function () {
-par(
-  mfrow=c(1,3),
-    mar=c(2,1,1,1)
-  )
-for(i in 4:6) {
-  boxplot(amphi[,i], main=NULL, horizontal=T)
-}
-}
-
-line2=plot_grid(ggdraw(l3) , ggdraw(l4), ncol=1, rel_heights = c(.7 , .3))
-
-l5=function () {
-par(
-  mfrow=c(1,3),
-    mar=c(1,1,1,1)
-  )
-for(i in 7:9) {
-  hist(amphi[,i], main=names(amphi)[i], breaks=30)
-}
-}
-
-l6=function () {
-par(
-  mfrow=c(1,3),
-    mar=c(2,1,1,1)
-  )
-for(i in 7:9) {
-  boxplot(amphi[,i], main=NULL, horizontal=T)
-}
-}
-
-line3=plot_grid(ggdraw(l5) , ggdraw(l6), ncol=1, rel_heights = c(.7 , .3))
-plot_grid(line1, 
-          line2,
-          line3, ncol=1)
-
-rm(l1,l2, l3, l4, l5,l6,
-   line1, 
-   line2, 
-   line3)
+amphi %>% 
+  pivot_longer(1:9,names_to = "espece", values_to = "prop") %>% 
+  mutate(lng_nm=case_when(espece=="A_Gr"~ "Acris gryllus",
+                          espece=="G_Ca"~ "Gastrophryne carolinensis",
+                          espece=="S_La"~ "Siren lacertina",
+                          espece=="H_Ci"~ "Hyla cinerea",
+                          espece=="H_Fe"~ "Hyla Femoralis",
+                          espece=="H_Sq"~ "Hyla squirella",
+                          espece=="L_Gr"~ "Lithobates grylio",
+                          espece=="L_Sp"~ "Lithobates sphenocephalus",
+                          espece=="N_Vi"~ "Notophthalmus viridescens")) %>% 
+ggplot()+
+  geom_boxplot(aes(prop), varwidth = F, width=.1)+
+  facet_wrap(~lng_nm, scales="free_x")+
+  theme_bw()+
+  theme(axis.text.y = element_blank())
 
 ```
 
 ## 6.1 - Données aberrantes en Y
 
-On peut toutefois inspecter le compte d'espèces à chaque site (convertir les abondances relatives en 0-1 pour chaque site). On peut aussi jetter un coup d'oeil à la richesse spécifique. 
+* On peut toutefois inspecter le compte d'espèces à chaque site (convertir les abondances relatives en 0-1 pour chaque site). On peut aussi jetter un coup d'oeil à la richesse spécifique, avec le fait d'être cloturé ou pas (pourquoi pas?!). 
+
+* On peut voir quelles espèces sont rares dans notre jeu de données à gauche, et que les seuls sites mono-spcifiques sont aussi sans clôture, à droite. 
 
 ```{r amphi_barplot, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,3)}
 amphi<-dat %>% 
   select(etang,A_Gr:N_Vi) %>% 
   column_to_rownames("etang") %>% 
-  vegan::decostand(amphi, method = "pa") 
+  vegan::decostand(amphi, method = "pa") %>% 
+  mutate(cloture=dat$cloture)
 
-tmp=table(rowSums(amphi)) %>%
-data.frame()
-colnames(tmp) =  c("especes_presentes", "nombre_de_sites")
+tmp=data.frame(table(rowSums(amphi[amphi$cloture=="No", 1:9]))) %>% 
+  bind_rows(data.frame(table(rowSums(amphi[amphi$cloture=="Yes", 1:9])))) %>% 
+  mutate(cloture=c(rep("No", 6), rep("Yes", 4)))
+colnames(tmp) =  c("especes_presentes", "nombre_de_sites", "cloture")
 
 plot_grid(
   ggplot()+
-    geom_col(aes(y=sort(colSums(amphi)),
-                 x=factor(names(sort(colSums(amphi))), 
-                          levels=names(sort(colSums(amphi))))
-    )
-    )+ 
+    geom_col(aes(y=sort(colSums(amphi[,1:9])),
+                 x=factor(names(sort(colSums(amphi[,1:9]))), 
+                          levels=names(sort(colSums(amphi[,1:9])))))
+             )+ 
     xlab("Espèce")+
     ylab("Nombre de présences\n(tous les sites confondus)")+
     theme_classic(),
-  
 
   ggplot(tmp)+
-    geom_col(aes(especes_presentes,nombre_de_sites))+
+    geom_col(aes(especes_presentes,nombre_de_sites, fill=cloture))+
     xlab("Richesse spécifique à chaque site")+
+  scale_fill_manual(values=c("steelblue4", "darkgoldenrod2"))+
     scale_y_continuous("Nombre de sites", 
                        breaks=seq(0, 12, 2), 
                        limits=c(0,12.1))+
-    theme_classic()
+    theme_classic()+
+    theme(legend.position = c(0.8, .8))
 )
 
 ```
 
-## 6.2 - Homogénéité de la variance et normalité des Ys
+## 6.2 - Homogénéité de la variance et 6.3 - Normalité des Ys
 
-Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit homogène (on ne fait pas des modèles linéaires où les résidus devraient être homogènes, etc.); qui plus est, ce n'est pas une supposition à respecter dans le cadre d'une analyse multivariée...
+* Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit homogène (on ne fait pas des modèles linéaires où les résidus devraient être homogènes, etc.); qui plus est, ce n'est pas une supposition à respecter dans le cadre d'une analyse multivariée...
 
-Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit Normale non plus. 
+* Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit normale non plus. 
 
 ## 6.4 - Problèmes de 0 dans les Y
 
 Comme on a vu plus tôt à l'étape 4 les zéros (absences) composent 70.5% de la matrice. Il se pourrait d'ailleurs que la faible présence de certaines espèces (H_Fe, N_Vi et A_GR) pose des problèmes pour l'analyse visée. 
 
 ## 6.5 - Collinéarité des X
-Premièrement avec les étangs non cloturés: 
-```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=5.3}
-dat %>% 
-  select(vache_std:poissons) %>%
-  relocate(aire, .after = profondeur) %>% 
-  psych::pairs.panels()
-```
 
-## 6.5 - Collinéarité des X
-Maintenant avec les étangs non cloturés, sans la variables vache.
-```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=5.3}
+```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=6}
 dat %>% 
-    subset(cloture=="Yes" | vache_std==0) %>% 
-  select(profondeur:poissons) %>%
-  relocate(aire, .after = profondeur) %>% 
-  psych::pairs.panels()
-
-dat %>% 
-    # subset(cloture=="Yes" | vache_std==0) %>% 
   select(vache_std:poissons) %>%
   relocate(aire, .after = profondeur) %>% 
   psych::pairs.panels()
 
 ```
 
+## 6.5 - Collinéarité des X
+
+En ce qui concerne les variables numériques, on a quelques corrélations, mais rien de révoltant, surtout si on choisi une analyse qui n'est invalidée par ces collinéarités. 
+
+Pêut-être un peu plus *d'intérêt* pour les corrélations avec `vache_std`: 
+
+* Corrélé positivement aux `nitrates` et à la `conductivite`, 
+* Corrélé négativement au `pH`
 
 ## 6.5 - Collinéarité des X
-Variable cloture vs. variables *physico-chimiques*
+Variable cloture vs. variables *physico-chimiques*: rien d'alarmant, considérant qu'on a seulement 5 étangs clôturés. Semble y avoir une tendance entre le fait d'être clôturé et les nitrates.  
 
 ```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
 dat %>% 
@@ -517,11 +469,10 @@ dat %>%
   geom_jitter(height=0, width=.1)+
   facet_wrap(~parametre, scales = "free_y")+
   theme_bw()
-
 ```
 
 ## 6.5 - Collinéarité des X
-Variable cloture vs. variables *topographiques*
+Variable cloture vs. variables *topographiques* : rien d'alarmant, considérant qu'on a seulement 5 étangs clôturés.
 
 ```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
 dat %>% 
@@ -552,8 +503,11 @@ dat %>%
 
 ## 6.6 - Liens X et Y
 Abondances relatives en fonction des paramètres physico-chimiques
-```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
 
+  > Ligne + interval = smooth ('loess'; 'y ~ x').
+    
+```{r echo=F, fig.align="center", fig.height=4.3, fig.width=7, message=FALSE, warnings=F}
+set.seed(1)
 pal=paletteer::paletteer_d("colorBlindness::paletteMartin") %>%  sample(9)
 
 dat%>% 
@@ -567,7 +521,6 @@ dat%>%
   ylab("Proportion par site")+
   xlab("Mesure du paramètre")+
   theme_bw()
-
 
  # %>% 
  #  mutate(prof_cat=factor(
@@ -585,10 +538,11 @@ dat%>%
 ```
 
 ## 6.6 - Liens X et Y
-Abondances relatives en fonction des caractéristiques topographiques
+Abondances relatives en fonction des caractéristiques topographiques 
+
+> Ligne + interval = smooth ('loess'; 'y ~ x').
 
 ```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
-
 dat%>% 
   pivot_longer(A_Gr:N_Vi, names_to = "espece", values_to = "prop") %>% 
   select(prop, profondeur, aire, espece) %>% 
@@ -607,6 +561,8 @@ dat%>%
 ## 6.6 - Liens X et Y
 Abondances relatives en fonction des facteurs biotiques
 
+> Ligne + interval = smooth ('loess'; 'y ~ x').
+
 ```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=4.3, fig.align="center"}
 dat%>% 
   pivot_longer(A_Gr:N_Vi, names_to = "espece", values_to = "prop") %>% 
@@ -623,7 +579,9 @@ dat%>%
 ```
 
 ## 6.6 - Liens X et Y
-Abondances relatives en fonction de l'intensité des vaches et de la présence de cloture
+Abondances relatives en fonction de l'intensité des vaches et de la présence de cloture.
+
+> Ligne + interval = smooth ('loess'; 'y ~ x').
 
 ```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=4.3, fig.align="center"}
 p1=dat%>% 
@@ -653,10 +611,17 @@ p1+p2+plot_layout(ncol=2, guides = "collect")
 
 ## 6.7 - Indépendance des Y
 
-Richesse spécifique à chaque site
+Richesse spécifique à chaque site:
+* Les données semblent indépendantes. 
+
+Plus ou moins pour vérifier l'indépendance des sites, mles étangs avec plus d'espèces semblent être plus creux et plus gros. 
 
 ```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=4.3, fig.align="center"}
 # Richesse spécifique vs sites
+amphi<-dat %>% 
+  select(etang,A_Gr:N_Vi) %>% 
+  column_to_rownames("etang") %>% 
+  vegan::decostand(amphi, method = "pa") 
 
 sit.pres <- apply(amphi > 0, 1, sum)
 
@@ -713,13 +678,15 @@ dat%>%
 ```
 
 ## Faits saillants de l'exploration des données (étape 6):
-- Les données d'abondance ont été standardisées par unité d'effort et par abondance totale pour chaque espèce. 
-  - Les variables Y sont donc numériques continues vont de 0 à 0,86. La somme pour chaque espèce (colonne) est égale à 1. 
-  - Près de 71% des données de la matrice d'abondance sont égales à 0.
-- Certaines variables indépendantes semblent avoir des mesures erronnées, surtout pour l'oxygène, le pH et quelques des valeurs extrèmes de temperature. 
-- Certaines variables pourraient bénéficier de transformation, particulièrement, la température, les poissons et les écrevisses.
-- Les variables physico-chimiques devront être standardisées
-- Les étangs plus creux et plus grands semblent avoir une richesse spécifique supérieure. La topographie des étangs pourrait influencer d'autres facteurs physico-chimiques, et donc l'aire et la profondeur devraient être considérés comme des covariables. 
+* Les données d'abondance ont été standardisées par unité d'effort et par abondance totale pour chaque espèce (somme pour chaque espèce est égale à 1). 
+    + Près de 71% des données de la matrice d'abondance sont égales à 0.
+* Les variables physico-chimiques devront être standardisées
+    + Certaines variables physico-chimiques semblent avoir des mesures erronnées.
+    + L'oxygène et le pH, sont plus problématique. On va ignorer les valeurs de pH, et retirer les sites d'O² négatifs. 
+    + On a vérifié les valeurs extrèmes de temperature (section matériel supplémentaire), rien à signaler. La transformation log ne colle pas particulièrement les valeurs extrèmes au reste des données.
+* La transformation log des poissons ou des écrevisses n'atténue pas la sureprésentation des zéros vus dans la distribution des données brutes.  
+* La topographie des étangs pourrait influencer d'autres facteurs physico-chimiques, et donc l'aire et la profondeur devraient être considérés comme des covariables. 
+    + Les étangs plus creux et plus grands semblent avoir une richesse spécifique supérieure. 
 
 ##Étape 7. Choix de l'analyse
 

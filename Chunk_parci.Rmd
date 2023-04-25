@@ -1,0 +1,49 @@
+---
+title: "Les vaches,<br>les amphibiens<br>et vous"
+author: "Équipe 5 - Florent Déry, Morgane Le Goff, Myriam Trottier-Paquet"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+editor_options: 
+  chunk_output_type: console
+---
+
+<style>
+pre {
+    line-height: 1.2em;
+    font-size: 10px;
+}
+</style>
+
+
+## Modèle parcimonieux 
+On lance la RDA partielle pour le modèle parcimonieux: 
+
+```{r RDA.parci_launched, message=FALSE}
+#require(vegan)
+(rda.parci=rda(amphi.hel~ cloture + poissons + Condition(topo$aire +topo$profondeur), env) )
+
+(R2.parci <- RsquareAdj(rda.parci)$r.squared)
+(R2adj.parci <- round(RsquareAdj(rda.parci)$adj.r.squared, dig=3))
+
+anova(rda.parci, permutations = how(nperm = 999))
+anova(rda.parci, by="axis", permutations = how(nperm = 999))
+anova(rda.parci, by="term", permutations = how(nperm = 999))
+vif.cca(rda.parci)
+
+#source("triplot.rda.R")
+
+par(mfrow=c(1,2))
+triplot.rda(rda.parci, scaling=1, 
+            move.origin=c(0, 0), 
+            mar.percent=0.05,
+            silent=T)
+triplot.rda(rda.parci, scaling=2, 
+            move.origin=c(0, 0), 
+            mar.percent=0.05,
+            silent=T)
+```
+
+
