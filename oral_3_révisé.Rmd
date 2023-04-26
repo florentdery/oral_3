@@ -825,7 +825,9 @@ vif.cca(prda)
 Tout est bien. <br>
 Jettons un coup d'oeil aux triplots maintenant.
 
-## Étape 8.3 - Interpréter les résultats : triplots 
+## Étape 8.3 - Interpréter les résultats :  triplots À FINIR 
+ajouter ellipse autour des sites avec cloture,
+souligner les 4 variables sorties de notre modèle.
 
 ```{r RDA_triplots_scale_1, echo=F, message=F, warnings=F, results="hide", fig.dim=c(10, 5), fig.align="center"}
 
@@ -847,7 +849,7 @@ triplot.rda(prda, scaling=2,
             silent=T,site.sc = "lc", optimum = T)
 ```
 
-## 8.3 - Interpréter les résultats : triplots À FINIR AVEC SUBSET DE VARIABLES ENVIRO
+## 8.3 - Interpréter les résultats : triplots 
 * Différences dans la communauté d’amphibiens entre les étangs clôturés et non clôturés
     + Des espèces d’amphibiens *rares* dans notre système sont favorisées par la présence de clôture
     + N_Vi
@@ -883,8 +885,6 @@ plot(amphi.part.all,
      Xnames = c("Bétail", "Physico-chimie", "Topo", "Facteurs\nbiotiques"), 
      id.size=0.9, cex=.8)+
     title("Modèle global")
-
-
 
 ```
 
