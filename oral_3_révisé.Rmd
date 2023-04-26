@@ -688,12 +688,15 @@ dat%>%
 ## Étape 7. Choix de l'analyse
 
 **Pourquoi une analyse multivariée?** 
+
 * Analyse de données complexes en terme de dimensionalité : plusieurs variables avec plusieurs dimensions de manière simultanée - On veut analyser la réponse de la communauté d’amphibiens (abondance de plusieurs espèces) à différents facteurs : conditions physico-chimiques, abondance d’autres espèces animales et topographie.
 
 **Quelle analyse multivariée?**
+
 * Nous avons décidé d'utiliser une analyse de redondance (RDA) partielle pour analyser comment la présence de clôture, l'utlisation des étangs par les vaches et les variables physico-chimiques en plus des facteurs biotiques font varier la communauté d'amphibiens, en prennant en compte l'effet de l'aire et de la profondeur des étangs comme co-variables.
 
 **Pourquoi?**
+
 * Appropriée pour mettre en lien des variables liées aux espèces (matrice Y) et des variables environnementales (matrice X) comme dans notre cas. 
 * Test non paramétrique donc pas besoin de supposer une distribution normale multivariée : la majorité de nos variables dans la RDA partielle ne sont pas distribuées de manière normale.
 * RDA partielle parce qu’on a des covariables qui ne nous intéressent pas mais qui vont influencer les relations entre les autres variables.
@@ -830,6 +833,9 @@ source("triplot.rda.R")
 
 par(mfrow=c(1,2))
 
+# ajouter ellipse autour des sites avec cloture, 
+# souligner les 4 variables sorties de notre modèle. 
+
 triplot.rda(prda, scaling=1, 
             move.origin=c(0, 0), 
             mar.percent=0,
@@ -843,14 +849,22 @@ triplot.rda(prda, scaling=2,
 
 ## 8.3 - Interpréter les résultats : triplots À FINIR AVEC SUBSET DE VARIABLES ENVIRO
 * Différences dans la communauté d’amphibiens entre les étangs clôturés et non clôturés
-    + Les espèces d’amphibiens rares dans notre système sont favorisées par la présence de clôture
-* L’intensité d’utilisation des étangs par les vaches n’influence pas la communauté d’amphibiens
+    + Des espèces d’amphibiens *rares* dans notre système sont favorisées par la présence de clôture
+    + N_Vi
+    + A_Gr 
 
-Ces triplots sont très chargés, et beaucoup de variables sont près de l'origine.<br>On peut surement réduire les variables dans la RDA!
-
+* L’intensité d’utilisation des étangs par les vaches tend à influencer la communauté d’amphibiens
+    + Plus c'est utilisé par les vaches, plus il y a de nitrates
+      - L'espèce H_Sq et les nitrates sont corrélés positivement. 
+      
+* Plus il y a de nitrates, moins il y a de poissons.  
+* Certains amphibiens sont retrouvés là où il y a plus de poissons: 
+    + H_Ci 
+    + S_La
+    
 ## 8.3 - Partitionner la variance du modèle global
 
-```{r var-par-modele-global, echo=F, message=F, warnings=F, results="hide", fig.dim=c(6.5, 5.3), fig.align="left"}
+```{r var-par-modele-global, echo=F, message=F, warnings=F, results="hide", fig.dim=c(6.5, 5.3), fig.align="center"}
 
 vache<-env %>% select(cloture, vache_std)
 anim<-env %>% select(invertebres:poissons)
@@ -860,7 +874,7 @@ topo=topo
 amphi.part.all <- varpart(amphi.hel, vache, chem, topo, anim)
 
 par(mfrow= c(1,1),
-        mar=c(1,0,2,0))
+        mar=c(1,0,2,0.2))
 plot(amphi.part.all, 
      digits = 3,
      bg = c("red",
@@ -869,17 +883,24 @@ plot(amphi.part.all,
      Xnames = c("Bétail", "Physico-chimie", "Topo", "Facteurs\nbiotiques"), 
      id.size=0.9, cex=.8)+
     title("Modèle global")
+
+
+
 ```
 
 ## 8.3 - Interpréter les résultats : Partitionner la variance
 
-# Retour sur les objectifs\nde la question initiale
+* Les facteurs biotiques combinés aux variables reliées au pâturage par les vaches expliquent la majorité de la petite portion de variance expliquée par notre analyse de redondance. 
 
-## Objectif 1
+      + Le fait d'être clôturé et l'intensité d'utilisation par les vaches expliquent 4.6% de la variance,
+      
+      + Les facteurs biotiques expliquent 6.5%, 
+      
+      + Combinés, ces facteurs expliquent 12% de la variance dans la matrice d'abondances d'amphibiens. 
+      
+# FIN
 
-## Objectif 2
-
-## Objectif 3
+Ils vécurent heureux et eurent beaucoup de tétards
 
 ## Matériel supplémentaire | Effet de quelques variables moins disciplinées
 
