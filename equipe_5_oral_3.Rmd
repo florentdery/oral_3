@@ -770,6 +770,8 @@ rownames(env) <- subset(dat, oxygene>0)$etang
 glimpse(env)
 ```
 
+# RDA partielle | modèle global 
+
 ## Étape 8.1 Exécuter l'analyse 
 On lance la RDA partielle: 
 
@@ -804,7 +806,7 @@ anova(prda, by="axis", permutations = how(nperm = 999))
 ```
 
 ## Étape 8.2 Valider l'analyse 
-Le tests de permutations sur les variables explicatives montre que les variables clôture, nitrates, temperature et poissons semblent mieux expliquer la variance dans la matrice d'abondances des amphibiens. C'est aussi envisageable de réduire le nombre de variables dans la RDA dans de prochaines étapes. 
+Le tests de permutations sur les variables explicatives montre que les variables `cloture`, `nitrates`, `vache_std` et `poissons` semblent mieux expliquer la variance dans la matrice d'abondances des amphibiens. C'est aussi envisageable de réduire le nombre de variables dans la RDA dans de prochaines étapes. 
 
 ```{r RDA_checks_terms}
 anova(prda, by="term", permutations = how(nperm = 999))
@@ -816,67 +818,238 @@ Vérifier s'il y a de la collinéarité entre les variables explicatives:
 ```{r RDA_checks_vif}
 vif.cca(prda)
 ```
-Tout est bien. 
+Tout est bien. <br>
+Jettons un coup d'oeil au triplots maintenant
 
-## Étape 8.3 Interpréter les résultats 
+## Étape 8.3 - Interpréter les résultats : triplots 
 
-```{r RDA_triplots_scale_1, message=F, warnings=F, echo=F}
+```{r RDA_triplots_scale_1, echo=F, message=F, warnings=F, results="hide", fig.dim=c(10, 5), fig.align="center"}
+
 source("triplot.rda.R")
+
+par(mfrow=c(1,2))
+
 triplot.rda(prda, scaling=1, 
             move.origin=c(0, 0), 
             mar.percent=0,
-            silent=T)
-```
+            silent=T, site.sc = "lc", optimum = T)
 
-## Étape 8.3 Interpréter les résultats 
-```{r RDA_triplots_scale2, message=F, warnings=F, echo=F}
 triplot.rda(prda, scaling=2, 
             move.origin=c(0, 0), 
             mar.percent=0.05,
-            silent=T)
+            silent=T,site.sc = "lc", optimum = T)
+```
 
+## 8.3 - Interpréter les résultats : triplots 
+* Différences dans la communauté d’amphibiens entre les étangs clôturés et non clôturés
+    + Les espèces d’amphibiens rares dans notre système sont favorisées par la présence de clôture
+* L’intensité d’utilisation des étangs par les vaches n’influence pas la communauté d’amphibiens
+
+Ces triplots sont très chargés, et beaucoup de variables sont près de l'origine.<br>On peut surement réduire les variables dans la RDA!
+
+# Sélection de variables
+
+## Selection forward de variables
+
+En faisant la selection **forward** de la RDA partielle, ces variables sont celles qui ressortent: 
+```{r, echo=F, eval=T, message=FALSE, results="hide", warning=FALSE}
+# The one that runs #
+xrda<-rda(amphi.hel~ Condition(topo$aire +topo$profondeur), data=env) # modèle nul
+set.seed(1)
+step.forward<-ordistep(xrda, scope = formula(prda), direction="forward", permutations = how(nperm=499))
+## list(nitrates, temperature, poissons, cloture, topo$aire, topo$profondeur)
+```
+```{r, echo=T, eval=F, message=FALSE, warning=FALSE}
+step.forward<-ordistep(xrda, scope = formula(prda), direction="forward", permutations = how(nperm=499))
+
+## list(poissons, cloture, topo$aire, topo$profondeur)
+```
+Avec un R² ajusté de 
+```{r, echo=F, eval=T}
+RsquareAdj(step.forward)$adj.r.squared
+```
+et le test de permutations sur les variables ajoutées à l'air de ceci:
+```{r, echo=F, eval=T}
+step.forward$anova
+```
+
+## Selection backward de variables
+En faisant la selection **backward** de la RDA partielle (modèle global), ces variables sont celles qui ressortent: 
+```{r, echo=F, eval=T, message=FALSE, results="hide", warning=FALSE}
+set.seed(1)
+step.back<- ordistep(prda, permutations = how(nperm=499))
+```
+
+```{r, echo=TRUE, eval=FALSE}
+step.back<- ordistep(prda, permutations = how(nperm=499))
+step.back$terminfo$terms %>% attr(., "variables")
+
+# list(nitrates, temperature, poissons, cloture, topo$aire, topo$profondeur)
+```
+avec un R² ajusté de 
+```{r, echo=F, eval=T, message=FALSE, warning=FALSE}
+RsquareAdj(step.back)$adj.r.squared
+```
+et le test de permutations sur les variables enlevées à l'air de ceci:
+```{r, echdo=F, eval=T, message=FALSE, warning=FALSE}
+step.back$anova
+```
+
+## - à compléter ! Modèle parcimonieux 
+On prend le backward ou le forward ? On choisi d'inclure les variables issues du backward selection ? <br>
+On lance la RDA partielle pour le modèle parcimonieux. 
+
+```{r RDA.parci_launched, message=FALSE, echo=T, eval=F}
+#require(vegan)
+
+(rda.parci=rda(amphi.hel~ cloture + poissons + Condition(topo$aire +topo$profondeur), env) )
+(R2adj.parci <- round(RsquareAdj(rda.parci)$adj.r.squared, dig=3))
+
+set.seed(1)
+anova(rda.parci, permutations = how(nperm = 999))
+anova(rda.parci, by="axis", permutations = how(nperm = 999))
+anova(rda.parci, by="term", permutations = how(nperm = 999))
+vif.cca(rda.parci)
+
+#source("triplot.rda.R")
+
+par(mfrow=c(1,3), 
+    mar=c(4,2,1,1))
+triplot.rda(rda.parci, scaling=1, 
+            move.origin=c(0, 0), 
+            mar.percent=0.05,
+            silent=T)
+triplot.rda(rda.parci, scaling=2, 
+            move.origin=c(0, 0), 
+            mar.percent=0.05,
+            silent=T)
+```
+
+## - à compléter. triplot super cool qui donne pas la meme chose qu'avec triplot.rda().
+
+```{r, echo=FALSE, eval=F}
+
+# Triplot joli
+
+perc <- round(100*(summary(rda.parci)$cont$importance[2, 1:2]), 2)
+
+## extract scores - these are coordinates in the RDA space
+sc_si <- scores(rda.parci, display=c("lc"), choices=c(1,2))
+sc_sp <- scores(rda.parci, display="species", choices=c(1,2))
+sc_bp <- scores(rda.parci, display="bp", choices=c(1, 2))
+
+
+par(mfrow=c(1,3), 
+    mar=c(4,2,1,1))
+triplot.rda(rda.parci, scaling=1, 
+            move.origin=c(0, 0), 
+            mar.percent=0.05,
+            silent=T)
+triplot.rda(rda.parci, scaling=2, 
+            move.origin=c(0, 0), 
+            mar.percent=0.05,
+            silent=T)
+# Set up a blank plot with scaling, axes, and labels
+plot(rda.parci,
+     scaling = 1, # set scaling type 
+     type = "none", # this excludes the plotting of any points from the results
+     frame = T,
+     # set axis limits
+     ylim = c(-1,1),
+     xlim = c(-.6,.6),
+     # label the plot (title, and axes)
+     main = "Triplot RDA - scaling 1",
+     xlab = paste0("RDA1 (", perc[1], "%)"), 
+     ylab = paste0("RDA2 (", perc[2], "%)") , 
+     bty="o"
+)
+
+# add points for site scores
+points(sc_si, 
+       pch = 21, # set shape (here, circle with a fill colour)
+       col = "black", # outline colour
+       bg = "lightgreen", # fill colour
+       cex = 1.2) # size
+
+points(sc_si[c("48","90", "126", "150", "209"), ], 
+       pch = 21, # set shape (here, circle with a fill colour)
+       col = "black", # outline colour
+       bg = "darkgreen", # fill colour
+       cex = 1.2) # size
+
+
+# add points for species scores
+points(sc_sp, 
+       pch = 24, # set shape (here, square with a fill colour)
+       col = "orange",
+       bg = "orange", 
+       cex = 1.2)
+# add text labels for species abbreviations
+text(sc_sp + c(0.03, 0.09), # adjust text coordinates to avoid overlap with points 
+     labels = rownames(sc_sp), 
+     col = "orange", 
+     font = 2, # bold
+     cex = 1)
+# add arrows for effects of the expanatory variables
+arrows(0,0, # start them from (0,0)
+       sc_bp[,1], sc_bp[,2], # end them at the score value
+       col = "red", 
+       lwd = 1)
+# add text labels for arrows
+text(x = sc_bp[,1] -0.1, # adjust text coordinate to avoid overlap with arrow tip
+     y = sc_bp[,2] - 0.03, 
+     labels = rownames(sc_bp), 
+     col = "red", 
+     cex = 0.9, 
+     font = 1)
 
 ```
 
-## Variance partitionning
-```{r}
+## 8.3 - à compléter ! Partitionner la variance : modèle global vs parcimonieux
+
+```{r var-par-modele-global, echo=F, message=F, warnings=F, results="hide", fig.dim=c(10.5, 5.3), fig.align="left"}
 # Explanation of fraction labels (two, three and four explanatory matrices) with optional colours)
 #par(mfrow = c(1, 3), mar = c(1, 1, 1, 1))
 # showvarparts(2, bg = c("red", "blue"))
 # showvarparts(3, bg = c("red", "blue", "yellow")) 
 # showvarparts(4, bg = c("red", "blue", "yellow", "green"))
 
-## Variation partitioning with all explanatory variables
-vache<-env[,1:2]
-anim<-env[,7:9]
-chem<-env[,3:6]
-amphi.part.all <- varpart(amphi.hel, vache, chem, anim)
-amphi.part.all
-par(mfrow= c(1,1))
-plot(amphi.part.all, digits = 3, bg = c("red", "blue", "yellow"), Xnames = c("Bétail", "Physico-chimie", "Communautés animales"))
+## Partitionner la variance avec toutes les variables du modèle 
+vache<-env %>% select(cloture, vache_std)
+anim<-env %>% select(invertebres:poissons)
+chem<-env %>% select(conductivite:temperature)
+topo=topo
+
+amphi.part.all <- varpart(amphi.hel, vache, chem, topo, anim)
+
+par(mfrow= c(1,2),
+        mar=c(1,0,2,.2))
+plot(amphi.part.all, 
+     digits = 3,
+     bg = c("red",
+            "blue", 
+            "yellow", "orange"), 
+     Xnames = c("Bétail", "Physico-chimie", "Topo", "Facteurs\nbiotiques"), 
+     id.size=0.9, cex=.8)+
+    title("Modèle global")
 
 cloture<-env[,1]
-amphi.part <- varpart(amphi.hel, cloture, chem, anim)
-amphi.part
-plot(amphi.part, digits = 3, bg = c("red", "blue", "yellow"), Xnames = c("Clôture", "Physico-chimie", "Communautés animales")) #Étrangement, ça explique plus quand j'enlève vache_std
-
-nitrates=env$nitrates
 poiss=env$poissons
-amphi.part.select <- varpart(amphi.hel, cloture, nitrates, anim)
-amphi.part.select
-par(mfrow= c(1,1))
-plot(amphi.part.select, digits = 3, bg = c("red", "blue", "yellow"), Xnames = c("Clôtures", "Nitrates", "Communautés animales"))
-amphi.part.4 <- varpart(amphi.hel, cloture, nitrates, poiss)
-amphi.part.4
-par(mfrow= c(1,1))
-plot(amphi.part.select, digits = 3, bg = c("red", "blue", "yellow"), Xnames = c("Clôtures", "Nitrates", "Poissons"))
+amphi.parsi <- varpart(amphi.hel, cloture, poiss, topo)
+par(mar=c(1,.2,2,0))
 
-amphi.parsi <- varpart(amphi.hel, cloture, poiss)
-amphi.parsi
-par(mfrow= c(1,1))
-plot(amphi.parsi, digits=2, bg = c("red", "blue"),Xnames = c("Clôtures",  "Poissons"))
+plot(amphi.parsi, 
+     digits=3, bg = c("red", 
+                      "orange", 
+                      "yellow"),
+     Xnames = c("Clôture",  "Poissons", "Topo"), 
+     id.size=0.9, cex=.8)+
+  title("Modèle le plus parsimonieux")
 
 ```
+
+## À compléter : interprétation variance 
+
 
 ## Matériel supplémentaire | Effet de quelques variables moins discipliniés
 
