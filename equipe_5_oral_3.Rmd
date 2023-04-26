@@ -847,53 +847,6 @@ triplot.rda(prda, scaling=2,
 
 Ces triplots sont très chargés, et beaucoup de variables sont près de l'origine.<br>On peut surement réduire les variables dans la RDA!
 
-# Sélection de variables
-
-## Selection forward de variables
-
-En faisant la selection **forward** de la RDA partielle, ces variables sont celles qui ressortent: 
-```{r, echo=F, eval=T, message=FALSE, results="hide", warning=FALSE}
-# The one that runs #
-xrda<-rda(amphi.hel~ Condition(topo$aire +topo$profondeur), data=env) # modèle nul
-set.seed(1)
-step.forward<-ordistep(xrda, scope = formula(prda), direction="forward", permutations = how(nperm=499))
-## list(nitrates, temperature, poissons, cloture, topo$aire, topo$profondeur)
-```
-```{r, echo=T, eval=F, message=FALSE, warning=FALSE}
-step.forward<-ordistep(xrda, scope = formula(prda), direction="forward", permutations = how(nperm=499))
-
-## list(poissons, cloture, topo$aire, topo$profondeur)
-```
-Avec un R² ajusté de 
-```{r, echo=F, eval=T}
-RsquareAdj(step.forward)$adj.r.squared
-```
-et le test de permutations sur les variables ajoutées à l'air de ceci:
-```{r, echo=F, eval=T}
-step.forward$anova
-```
-
-## Selection backward de variables
-En faisant la selection **backward** de la RDA partielle (modèle global), ces variables sont celles qui ressortent: 
-```{r, echo=F, eval=T, message=FALSE, results="hide", warning=FALSE}
-set.seed(1)
-step.back<- ordistep(prda, permutations = how(nperm=499))
-```
-
-```{r, echo=TRUE, eval=FALSE}
-step.back<- ordistep(prda, permutations = how(nperm=499))
-step.back$terminfo$terms %>% attr(., "variables")
-
-# list(nitrates, temperature, poissons, cloture, topo$aire, topo$profondeur)
-```
-avec un R² ajusté de 
-```{r, echo=F, eval=T, message=FALSE, warning=FALSE}
-RsquareAdj(step.back)$adj.r.squared
-```
-et le test de permutations sur les variables enlevées à l'air de ceci:
-```{r, echdo=F, eval=T, message=FALSE, warning=FALSE}
-step.back$anova
-```
 
 ## - à compléter ! Modèle parcimonieux 
 On prend le backward ou le forward ? On choisi d'inclure les variables issues du backward selection ? <br>
@@ -1033,18 +986,7 @@ plot(amphi.part.all,
      id.size=0.9, cex=.8)+
     title("Modèle global")
 
-cloture<-env[,1]
-poiss=env$poissons
-amphi.parsi <- varpart(amphi.hel, cloture, poiss, topo)
-par(mar=c(1,.2,2,0))
 
-plot(amphi.parsi, 
-     digits=3, bg = c("red", 
-                      "orange", 
-                      "yellow"),
-     Xnames = c("Clôture",  "Poissons", "Topo"), 
-     id.size=0.9, cex=.8)+
-  title("Modèle le plus parsimonieux")
 
 ```
 
@@ -1234,5 +1176,44 @@ triplot.rda(prda2, scaling=2,
 
 ```
 
+## Matériel supplémentaire | Selection backward de variables
+En faisant la selection **backward** de la RDA partielle (modèle global), ces variables sont celles qui ressortent: 
+```{r, echo=F, eval=T, message=FALSE, results="hide", warning=FALSE}
+set.seed(1)
+step.back<- ordistep(prda, permutations = how(nperm=499))
+```
+
+```{r, echo=TRUE, eval=FALSE}
+step.back<- ordistep(prda, permutations = how(nperm=499))
+step.back$terminfo$terms %>% attr(., "variables")
+
+# list(nitrates, temperature, poissons, cloture, topo$aire, topo$profondeur)
+```
+avec un R² ajusté de 
+```{r, echo=F, eval=T, message=FALSE, warning=FALSE}
+RsquareAdj(step.back)$adj.r.squared
+```
+et le test de permutations sur les variables enlevées à l'air de ceci:
+```{r, echdo=F, eval=T, message=FALSE, warning=FALSE}
+step.back$anova
+```
+
+et le partitionnement de la variance pour ce modèle : 
+```{r}
+cloture<-env[,1]
+poiss=env$poissons
+physico=env[,c("temperature", "nitrates")]
+
+amphi.parsi <- varpart(amphi.hel, cloture, physico, poiss, topo)
+par(mar=c(1,.2,2,0))
+
+plot(amphi.parsi, 
+     digits=3, bg = c("red", 
+                      "orange", 
+                      "yellow", "blue"),
+     Xnames = c("Clôture","Physico-chimie", "Poissons", "Topo"), 
+     id.size=0.9, cex=.8)+
+  title("Modèle le plus parsimonieux")
+```
 
 
