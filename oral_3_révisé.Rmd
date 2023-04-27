@@ -31,7 +31,8 @@ Vérifier l'impact du pâturage par le bétail (vaches) sur les communautés d'a
 
 3. Quelle sont les variables les plus influentes sur la communauté d’amphibiens et combien de variation ces variables expliquent-elles?
 
-## Hypothèses et prédictions (étape 2) 
+## Hypothèses et prédictions (étape 2)
+
 La présence et l'intensité d'utilisation du bétail modifient les conditions physico-chimiques des étangs, et ainsi l'abondance des invertébrés, poissons et écrevisses, ce qui détermine la composition des communautés amphibiennes. <br>Prédictions: 
 
 * Les conditions physico-chimiques sont différentes entre les étangs cloturés vs non-cloturés. 
@@ -296,7 +297,7 @@ plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
 * pH
     + Dans la section "Matériel supplémentaire", nous avons vérifié les autres paramètres mesurés à ces étangs ayant des valeurs de pH supérieures à 9 et inférieures à 4. 
       - Rien ne semblait anormal sauf peut-être la présence de poissons même lorsque le pH était de 1.88. Ceci nous pousse à croire que la variable pH n'est probablement pas fiable. 
-      - **Pour la suite, nous allons ignorer la variablede pH pour les analyses**
+      - **Pour la suite, nous allons ignorer la variable de pH pour les analyses**
 
 ## 6.1 - Données aberrantes en X 
 
@@ -436,7 +437,7 @@ plot_grid(
 
 * Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit homogène (on ne fait pas des modèles linéaires où les résidus devraient être homogènes, etc.); qui plus est, ce n'est pas une supposition à respecter dans le cadre d'une analyse multivariée (spoiler alert).
 
-* Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit normale non plus. 
+* Dans notre cas, on ne s'attend pas à ce que les Ys soient distribués normalement. 
 
 ## 6.4 - Problèmes de 0 dans les Y
 
@@ -600,13 +601,14 @@ p1=dat%>%
   theme(legend.position = "none")
 
 p2= dat%>% 
+  subset(cloture=='No') %>% 
   pivot_longer(A_Gr:N_Vi, names_to = "espece", values_to = "prop") %>% 
   ggplot(aes(x= vache_std, y= prop))+
   geom_point(aes(color=espece), size=2) +
     geom_smooth()+
    scale_color_manual(values=pal)+
   ylab("Proportion par site")+
-  xlab("Intensité d'utilisation par les vaches")+
+  xlab("Intensité d'utilisation par les vaches\n(Étangs non-clôturés)")+
   theme_bw()
 
 require(patchwork)
@@ -697,11 +699,17 @@ dat%>%
 
 **Pourquoi une analyse multivariée?** 
 
-* Analyse de données complexes en terme de dimensionalité : plusieurs variables avec plusieurs dimensions de manière simultanée - On veut analyser la réponse de la communauté d’amphibiens (abondance de plusieurs espèces) à différents facteurs : conditions physico-chimiques, abondance d’autres espèces animales et topographie.
+* Analyse de données complexes en terme de dimensionalité : plusieurs variables avec plusieurs dimensions de manière simultanée 
 
 **Quelle analyse multivariée?**
 
-* Nous avons décidé d'utiliser une analyse de redondance (RDA) partielle pour analyser comment la présence de clôture, l'utlisation des étangs par les vaches et les variables physico-chimiques en plus des facteurs biotiques font varier la communauté d'amphibiens, en prennant en compte l'effet de l'aire et de la profondeur des étangs comme co-variables.
+* Nous avons décidé d'utiliser une analyse de redondance (RDA) partielle
+
+**Pourquoi pas MANOVA? Pourquoi pas PCA/analyse non-contrainte?**
+
+* MANOVA : test paramétrique donc requiert une distribution normale multivariée dans les abondances d’espèces, ce qui est rarement le cas en pratique. Elle utilise les distances euclidiennes qui ne sont pas appropriées pour les abondances d’espèces et aussi il y a souvent plus d’espèces que de degrés de libertés dans le système. 
+
+* ANC : analyse multivariée mais pas un test statistique donc c’est purement descriptif
 
 ## Étape 7. Choix de l'analyse
 
@@ -709,16 +717,8 @@ dat%>%
 
 * Appropriée pour mettre en lien des variables liées aux espèces (matrice Y) et des variables environnementales (matrice X) comme dans notre cas. 
 * Test non paramétrique donc pas besoin de supposer une distribution normale multivariée : la majorité de nos variables dans la RDA partielle ne sont pas distribuées de manière normale.
-* RDA partielle parce qu’on a des covariables qui ne nous intéressent pas mais qui vont influencer les relations entre les autres variables.
+* RDA partielle parce qu’on a des covariables (topographie) qui ne nous intéressent pas mais qui vont influencer les relations entre les autres variables.
 * Combine une régression linéaire multiple à une ordination classique (PCA).
-
-## Étape 7. Choix de l'analyse
-
-**Pourquoi pas MANOVA? Pourquoi pas PCA/analyse non-contrainte?**
-
-* MANOVA : test paramétrique donc requiert une distribution normale multivariée dans les abondances d’espèces, ce qui est rarement le cas en pratique. Elle utilise les distances euclidiennes qui ne sont pas appropriées pour les abondances d’espèces et aussi il y a souvent plus d’espèces que de degrés de libertés dans le système. 
-
-* ANC : analyse multivariée mais pas un test statistique donc c’est purement descriptif.
 
 ## Étape 7. Choix de transformation de la matrice d'abondance: 
 Communauté d’amphibiens :
@@ -799,7 +799,7 @@ require(vegan)
 ## Étape 8.1 Exécuter l'analyse 
 
 * Près de 10% de la variance dans l'abondance est expliquée par les covariables,
-* ~37% par les variables environnementales.
+* ~34% par les variables environnementales.
 
 <br> Avec un R² ajusté, la variation expliquée par les variables environnementales tombe à :
 
@@ -863,11 +863,6 @@ triplot.rda(prda, scaling=2,
             silent=T,
             site.sc = "lc", 
             optimum = T)
-# vegan::ordiellipse(prda, 
-#                    env$cloture, show.groups="Yes",
-#                    conf=.75,
-#                    display ="lc", scaling=1,
-#                    draw="polygon", col="blue", border=NA, alpha=0.2)
 ```
 
 ## 8.3 - Interpréter les résultats : triplots 
@@ -918,6 +913,24 @@ plot(amphi.part.all,
     + Les facteurs biotiques expliquent 6.5%, 
     + Combinés, ces facteurs expliquent 12% de la variance dans la matrice d'abondances d'amphibiens. 
       
+      
+## Réponses aux questions de départ
+
+1. Est-ce que la communauté d’amphibiens diffère entre les étangs dont le bétail est exclu et ceux dont il n'est pas exclu?
+
+    - Oui, le test de permutations sur les variables révèlait une contribution significative de la variable `cloture`
+    - Sur le triplot, les centroïdes de `cloture` "Yes" et "No" sont opposés sur l'axe 1. 
+    
+2. Est-ce que l’intensité de l’utilisation par le bétail affecte la communauté d’amphibiens en prenant en compte les variables environnementales et la communauté animale?
+
+    - Le test de permutations indiquaient une tendance pour la variable `vache_std`. 
+    - Néanmoins, l'influence de cette variable est supérieure sur le 2e axe de la RDA, lequel n'était pas significatif. 
+    
+3. Quelles sont les variables les plus influentes sur la communauté d’amphibiens et combien de variation ces variables expliquent-elles?
+
+    - Les variables `poissons` (~4.8%), `nitrates` (~3.5%), `cloture` (~3.2%) avec une tendance de `vache_std` (~2.9%) sont plus influentes (test de permutations + triplot)
+    - Les groupes de variables ayant le plus d'influence sont les facteurs abiotiques, suivi par les variables associées au pâturage (graphe de partitionnement de variance).
+
 # FIN
 
 Ils vécurent heureux et eurent beaucoup de tétards
@@ -1080,21 +1093,24 @@ rownames(env2) <- subset(dat, oxygene>0)$etang
 
 On lance la RDA partielle, avec des variables binaires pour les poissons et les écrevisses. `env2` a été fait plus haut mais le code est caché (voir fichier `.Rmd`). 
 
-```{r scnd_RDA_launched, message=FALSE}
+```{r scnd_RDA_launched, message=FALSE, echo=T, eval=FALSE}
 require(vegan)
 (prda2=rda(amphi.hel ~ . + Condition(topo$aire +topo$profondeur), env2) )
 ```
 
-```{r scnd_RDA_checks, eval=F, message=FALSE}
- (R2adj_2 <- round(RsquareAdj(prda2)$adj.r.squared, dig=3))
+## Matériel supplémentaire - RDA checks
+
+```{r scnd_RDA_checks, eval=F, message=FALSE, echo=T}
+(R2adj_2 <- round(RsquareAdj(prda2)$adj.r.squared, dig=3))
 
 anova(prda2, permutations = how(nperm = 999))
 anova(prda2, by="axis", permutations = how(nperm = 999))
 anova(prda2, by="term", permutations = how(nperm = 999))
 vif.cca(prda2)
+```
 
+```{r scnd_RDA_triplots, eval=F, message=FALSE, echo=F}
 source("triplot.rda.R")
-
 par(mfrow=c(1,2))
 
 triplot.rda(prda2, scaling=1, 
@@ -1109,6 +1125,7 @@ triplot.rda(prda2, scaling=2,
 ```
 
 ## Matériel supplémentaire | Selection backward de variables
+
 En faisant la selection **backward** de la RDA partielle (modèle global), ces variables sont celles qui ressortent: 
 ```{r, echo=F, eval=T, message=FALSE, results="hide", warning=FALSE}
 set.seed(1)
@@ -1132,7 +1149,7 @@ step.back$anova
 
 ## Matériel supplémentaire | Faire une RDA basée sur le stepwise
 
-```{r trnd_RDA_data_prep, message=FALSE}
+```{r trnd_RDA_data_prep, message=FALSE, echo=F, results="hide"}
 topo=dat %>% 
     subset(oxygene>0) %>% 
   select(aire, profondeur) %>% 
@@ -1163,12 +1180,11 @@ rownames(env3) <- subset(dat, oxygene>0)$etang
 ```
 
 
-```{r trnd_RDA_launched, message=FALSE}
+```{r trnd_RDA_launched, message=FALSE, echo=T, eval=F}
 (rda.parci2b=rda(amphi.hel ~ temperature + nitrates+ cloture + poissons + Condition(topo$aire +topo$profondeur), env3) )
 ```
 
-
-```{r trnd_RDA_CHECKS, message=FALSE}
+```{r trnd_RDA_CHECKS, message=FALSE, echo=T, eval=F}
 set.seed(1)
 anova(rda.parci2b, permutations = how(nperm = 999))
 anova(rda.parci2b, by="axis", permutations = how(nperm = 999))
@@ -1179,9 +1195,11 @@ vif.cca(rda.parci2b)
 
 ```
 
-et le partitionnement de la variance pour ce modèle : 
+## Matériel supplémentaire | Faire une RDA basée sur le stepwise
 
-```{r thrd_rda_varpart}
+Le partitionnement de la variance pour ce modèle : 
+
+```{r thrd_rda_varpart, echo=T, eval=F}
 cloture<-env[,1]
 poiss=env$poissons
 physico=env[,c("temperature", "nitrates")]
