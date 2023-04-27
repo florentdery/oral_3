@@ -24,22 +24,23 @@ Les pâturages occupent actuellement 26% des surfaces terrestres libres de glace
 Vérifier l'impact du pâturage par le bétail (vaches) sur les communautés d'amphibiens d'étangs du Centre-Sud de la Floride, É.-U. 
 
 *Questions :*
+
 1. Est-ce que la communauté d’amphibiens diffère entre les étangs dont le bétail est exclu et ceux dont il n'est pas exclu?
+
 2. Est-ce que l’intensité de l’utilisation par le bétail affecte la communauté d’amphibiens en prenant en compte les variables environnementales et la communauté animale?
+
 3. Quelle sont les variables les plus influentes sur la communauté d’amphibiens et combien de variation ces variables expliquent-elles?
 
-### Hypothèses et prédictions (étape 2) 
-La présence et l'intensité d'utilisation du bétail modifient les conditions physico-chimiques des étangs, et ainsi l'abondance des invertébrés, poissons et écrevisses, ce qui détermine la composition des communautés amphibiennes. 
-Prédictions: 
+## Hypothèses et prédictions (étape 2) 
+La présence et l'intensité d'utilisation du bétail modifient les conditions physico-chimiques des étangs, et ainsi l'abondance des invertébrés, poissons et écrevisses, ce qui détermine la composition des communautés amphibiennes. <br>Prédictions: 
 
 * Les conditions physico-chimiques sont différentes entre les étangs cloturés vs non-cloturés. 
-    + Les vaches seront corrélées positivement aux nitrates
-    + Les vaches seront corrélées positivement à la *temperature*?
-    + Les vaches seront corrélées positivement à la conductivité
-    + Les vaches seront corrélées négativement au pH
-    + Les vaches seront corrélées négativement à l'O² 
-* Les espèces généralistes seront présentes dans tous les sites car elles sont tolérantes à une grande étendue de conditions.  
-    + À l'inverse, les espèces fragiles ou spécialistes occuperont des sites avec des conditions optimales
+    + L’utilisation par le bétail sera corrélée positivement aux nitrates
+    + L’utilisation par le bétail sera corrélée positivement à la conductivité
+    + L’utilisation par le bétail sera corrélée négativement au pH
+    + L’utilisation par le bétail sera corrélée négativement à l'O² 
+* Les espèces généralistes seront présentes dans tous les sites (avec ou sans clôture) car elles sont tolérantes à une grande étendue de conditions.  
+    + À l'inverse, les espèces fragiles ou spécialistes occuperont des sites avec des conditions optimales, moins fréquentés par les vaches.
   
 ## Variables du système (étape 3)
 Le jeu de données contient cinq *composantes*:
@@ -87,7 +88,7 @@ range(amphi)# Étendue
 sum(amphi==0) ; sum(amphi==0)/(nrow(amphi)*ncol(amphi))# Nombre de zéros, puis proportion de zéros dans la communauté
 ```
 
-## Étape 4 - distribution des Y
+## Étape 4 - Distribution des Ys
 ```{r distribution_ys,  echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(10,5) }
 amphi %>% 
   pivot_longer(1:9,names_to = "espece", values_to = "prop") %>% 
@@ -107,7 +108,7 @@ ggplot(aes(prop))+
   theme_bw()
 ```
 
-## Étape 4 - Variables indépendantes X
+## Étape 4 - Xs: Pâturage
 
 * La variable `cloture` est une variable catégorique à deux facteurs (Yes, No). 
 * La variable `vache_std` (Intensité d'utilisation de l'étang par le bétail) est une variable numérique continue dont la distribution [min ; max = 0 ; 0.6] est biaisée à gauche.
@@ -135,7 +136,7 @@ require(patchwork)
 p1 + p2 + plot_layout(ncol=2, widths=c(0.33, .67))
 ```
 
-## Étape 4 - Variables | Caractéristiques physico-chimiques
+## Étape 4 - Xs : Caractéristiques physico-chimiques
 
 * `conductivite`: numérique continue, distribution normale
 * `nitrates` : numérique continue, distribution déviée à gauche
@@ -158,7 +159,7 @@ hist(dat$temperature,
      col="cornflowerblue")
 range(dat$pH)
 ```
-## Étape 4 - Variables | Caractéristiques physico-chimiques
+## Étape 4 - Xs : Caractéristiques physico-chimiques
 
 * Oxygène : numérique continue, distribution normale
     + Il y a des valeurs négatives!!!  **-> on y reviendra!**
@@ -176,24 +177,7 @@ hist(dat$pH,
      col="cornflowerblue")
 ```
 
-## Étape 4 - Covariables | Caractéristiques topographiques
-
-* Profondeur (cm) : numérique continue, distribution normale
-* Aire (m²) : numérique continue, distribution *relativement* normale
-
-```{r distribution_covariables_topo,  echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(10,4.3) }
-par(mfrow=c(1,2))
-hist(dat$profondeur,
-     main="Profondeur",
-     xlab="Profondeur en cm",
-     col="cornflowerblue")
-hist(dat$aire,
-     main="Aire",
-     xlab="Aire en m^2",
-     col="cornflowerblue")
-```
-
-## Étape 4 - Variables | Facteurs biotiques
+## Étape 4 - Xs : Facteurs biotiques
 
 * Invertébrés : numérique continue, distribution déviée à gauche
 * Écrevisses : numérique continue, distribution déviée à gauche avec beaucoup de zéros **-> on y reviendra!**
@@ -216,20 +200,39 @@ hist(dat$poissons,
      xlab="Abondance de poissons",
      ylab="Nombre d'étangs",
      col="cornflowerblue")
-
 ```
+
+## Étape 4 - Xs en covariables : Caractéristiques topographiques
+
+* Profondeur (cm) : numérique continue, distribution normale
+* Aire (m²) : numérique continue, distribution *relativement* normale
+
+```{r distribution_covariables_topo,  echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(10,4.3) }
+par(mfrow=c(1,2))
+hist(dat$profondeur,
+     main="Profondeur",
+     xlab="Profondeur en cm",
+     col="cornflowerblue")
+hist(dat$aire,
+     main="Aire",
+     xlab="Aire en m^2",
+     col="cornflowerblue")
+```
+
 
 ## Interactions potentielles à tester (étape 5)
 
 Aucune. 
 
-## Exploration des données (étape 6) - Données aberrantes en X (6.1) 
+# Étape 6. - Exploration des données
+
+## 6.1 - Données aberrantes en X
 
 * Les valeurs de vache_std sont entre 0 et 0.575
 * Il ne semble pas y avoir de données aberrantes, mais 3 étangs non-clôturés ne semblent pas avoir été visités par les vaches. 
 
 ```{r abberent_Xs_vache, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
-range(dat$vache_std) 
+#range(dat$vache_std) 
 p3=ggplot(dat)+
   geom_histogram(aes(vache_std))+
   xlab("")+
@@ -257,7 +260,6 @@ plot_grid(p6,p4, ncol=2)+
 ## 6.1 - Données aberrantes en X 
 
 * O² : Il y a des valeurs négatives!!!  
-    + pour la suite de nos analyses, nous avons décidé de retirer les sites ayant des valeurs d'oxygène inférieures à 0. 
 - pH : Des étangs sont plus acides que du jus de citron, et presqu'aussi basiques que de l'eau de Javel! 
 
 ```{r abberent_Xs_physico, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,4) }
@@ -281,18 +283,20 @@ l2 <- function() {
     boxplot(Chimie[,i],horizontal = T, main=NULL)
   }
 }
+
 library(gridGraphics); library(cowplot)
 plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
 
 ```
+
 ## 6.1 - Données aberrantes en X 
 
 * O²
-    + Pour la suite de nos analyses, nous avons décidé de retirer les sites (n=2) ayant des valeurs d'oxygène inférieures à 0. Ces valeurs sont vraissemblablement des erreurs de mesures, on ne peut pas assumer qu'elles étaient à 0, ou à une autre valeur. 
+    + Pour la suite de nos analyses, **nous avons décidé de retirer les sites (n=2) ayant des valeurs d'oxygène inférieures à 0**. Ces valeurs sont vraissemblablement des erreurs de mesures, on ne peut pas assumer qu'elles étaient à 0, ou à une autre valeur. 
 * pH
-    + Dans la section "Matériel supplémentaire", nous avons vérifié les valeurs de pH supérieures à 9 et inférieures à 4. 
-      - Rien ne semblait anormal au niveau des autres paramètres mesurés à ces étangs, sauf peut-être la présence de poissons même lorsque le pH était de 1.88. Ceci nous pousse à croire que la variable pH n'est probablement pas fiable. 
-      - *Pour la suite, nous allons ignorer les variables de pH pour les analyses*
+    + Dans la section "Matériel supplémentaire", nous avons vérifié les autres paramètres mesurés à ces étangs ayant des valeurs de pH supérieures à 9 et inférieures à 4. 
+      - Rien ne semblait anormal sauf peut-être la présence de poissons même lorsque le pH était de 1.88. Ceci nous pousse à croire que la variable pH n'est probablement pas fiable. 
+      - **Pour la suite, nous allons ignorer la variablede pH pour les analyses**
 
 ## 6.1 - Données aberrantes en X 
 
@@ -325,11 +329,13 @@ plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
 
 ## 6.1 - Données aberrantes en X 
 
-* En ce qui concerne les poissons et les écrevisses, il semble y avoir beaucoup de zéros. Il faudra peut-être transformer les variables poissons et écrevisses. On a tenté de le faire, sans grand succès, à la section "Matériel supplémentaire". 
+* Poissons et les écrevisses: il semble y avoir beaucoup de zéros. Il faudra peut-être transformer. 
+    - On a tenté de le faire, sans grand succès, à la section "Matériel supplémentaire". 
 * Les écrevisses étant des prédateurs des grenouilles (tétards), on pourrait peut-être travailler en absence-présence d'écrevisses dans nos analyses, si cette variable est problématique. 
-* On a vérifié l'influence de travailler avec des variables binaires pour les comptes de poissons et d'écrevisses à la section "Matériel supplémentaire". 
+    - On a vérifié l'influence de travailler avec des variables binaires pour les comptes de poissons et d'écrevisses à la section "Matériel supplémentaire". 
 
 *Pour la suite, nous travaillerons avec les données originales*, qu'on remet graphiquement ici:
+
 ```{r aberrant_Xs_biotiques, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(8,3) }
 living<-dat[ , c("invertebres", "poissons", "ecrevisses")]
 
@@ -359,9 +365,9 @@ plot_grid(ggdraw(l1) , ggdraw(l2), ncol=1, rel_heights = c(.8, .2))
 ## 6.1 - Données aberrantes en Y
 
 * On a déjà jeté un coup d'oeil à la distribution des abondances relatives d'amphibiens à l'étape 4. Le voici en rappel, mais seulement avec des boxplots. 
-* Pas vraiment de données aberrantes (beaucoup de 0, mais pas aberrant en soi), si ce n'est quelques espèces rares. 
+* Pas vraiment de données aberrantes (beaucoup de 0, mais pas aberrant en soi), si ce n'est que quelques espèces rares. 
 
-```{r aberrant_Ys, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(10,5) }
+```{r aberrant_Ys, echo=F, warnings=F, message=F, fig.align="center", fig.dim=c(10,4) }
 amphi<-dat %>% 
   select(etang,A_Gr:N_Vi) %>% 
   column_to_rownames("etang") 
@@ -378,6 +384,7 @@ amphi %>%
                           espece=="N_Vi"~ "Notophthalmus viridescens")) %>% 
 ggplot()+
   geom_boxplot(aes(prop), varwidth = F, width=.1)+
+  xlab("Proportion")+
   facet_wrap(~lng_nm, scales="free_x")+
   theme_bw()+
   theme(axis.text.y = element_blank())
@@ -386,7 +393,7 @@ ggplot()+
 
 ## 6.1 - Données aberrantes en Y
 
-* On peut toutefois inspecter le nombre d'espèces à chaque site (convertir les abondances relatives en 0-1 pour chaque site). On peut aussi jetter un coup d'oeil à la richesse spécifique, avec le fait d'être cloturé ou pas (pourquoi pas?!). 
+* On peut toutefois inspecter le nombre d'espèces à chaque site (convertir les abondances relatives en 0-1 pour chaque site). On peut aussi jetter un coup d'oeil à la richesse spécifique, avec le fait d'être clôturé ou pas (pourquoi pas?!). 
 
 * On peut voir quelles espèces sont rares dans notre jeu de données à gauche, et que les seuls sites mono-spécifiques sont aussi sans clôture, à droite. 
 
@@ -427,15 +434,15 @@ plot_grid(
 
 ## 6.2 - Homogénéité de la variance et 6.3 - Normalité des Y
 
-* Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit homogène (on ne fait pas des modèles linéaires où les résidus devraient être homogènes, etc.); qui plus est, ce n'est pas une supposition à respecter dans le cadre d'une analyse multivariée.
+* Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit homogène (on ne fait pas des modèles linéaires où les résidus devraient être homogènes, etc.); qui plus est, ce n'est pas une supposition à respecter dans le cadre d'une analyse multivariée (spoiler alert).
 
-* Dans notre cas, on ne s'attend pas à ce que la variance des Y soit normale non plus. 
+* Dans notre cas, on ne s'attend pas à ce que la variance des Ys soit normale non plus. 
 
 ## 6.4 - Problèmes de 0 dans les Y
 
 Comme on a vu plus tôt à l'étape 4 les zéros (absences) composent 70.5% de la matrice. Il se pourrait d'ailleurs que la faible présence de certaines espèces (H_Fe, N_Vi et A_GR) pose des problèmes pour l'analyse visée. 
 
-## 6.5 - Colinéarité des X
+## 6.5 - Colinéarité des Xs
 
 ```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=6}
 dat %>% 
@@ -445,16 +452,16 @@ dat %>%
 
 ```
 
-## 6.5 - Colinéarité des X
+## 6.5 - Colinéarité des Xs
 
 En ce qui concerne les variables numériques, on a quelques corrélations, mais rien de révoltant, surtout si on choisi une analyse qui n'est pas invalidée par ces colinéarités. 
 
-Pêut-être un peu plus *d'intérêt* pour les corrélations avec `vache_std`: 
+Peut-être un peu plus *d'intérêt* pour les corrélations avec `vache_std`: 
 
 * Corrélé positivement aux `nitrates` et à la `conductivite`, 
 * Corrélé négativement au `pH`
 
-## 6.5 - Colinéarité des X
+## 6.5 - Colinéarité des Xs
 Variable cloture vs. variables *physico-chimiques* : rien d'alarmant, considérant qu'on a seulement 5 étangs clôturés. Semble y avoir une tendance entre le fait d'être clôturé et les nitrates.  
 
 ```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
@@ -468,7 +475,7 @@ dat %>%
   theme_bw()
 ```
 
-## 6.5 - Colinéarité des X
+## 6.5 - Colinéarité des Xs
 Variable cloture vs. variables *topographiques* : rien d'alarmant, considérant qu'on a seulement 5 étangs clôturés.
 
 ```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
@@ -483,7 +490,7 @@ dat %>%
 
 ```
 
-## 6.5 - Colinéarité des X
+## 6.5 - Colinéarité des Xs
 Variable clôture vs. variables *biotiques*
 
 ```{r, echo=F, message=F, warnings=F, fig.width=7, fig.height=4.3, fig.align="center"}
@@ -501,8 +508,8 @@ dat %>%
 ## 6.6 - Liens X et Y
 Abondances relatives en fonction des paramètres physico-chimiques
 
-  > Ligne + interval = smooth ('loess'; 'y ~ x').
-    
+> Ligne + interval = smooth ('loess'; 'y ~ x').
+
 ```{r echo=F, fig.align="center", fig.height=4.3, fig.width=7, message=FALSE, warnings=F}
 set.seed(1)
 pal=paletteer::paletteer_d("colorBlindness::paletteMartin") %>%  sample(9)
@@ -609,11 +616,12 @@ p1+p2+plot_layout(ncol=2, guides = "collect")
 ## 6.7 - Indépendance des Y
 
 Richesse spécifique à chaque site:
+
 * Les données semblent indépendantes. 
 
 Plus ou moins pour vérifier l'indépendance des sites, les étangs avec plus d'espèces semblent être plus creux et plus gros. 
 
-```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=4.3, fig.align="center"}
+```{r, echo=F, message=F, warnings=F, fig.width=10, fig.height=4, fig.align="center"}
 # Richesse spécifique vs sites
 amphi<-dat %>% 
   select(etang,A_Gr:N_Vi) %>% 
@@ -695,6 +703,8 @@ dat%>%
 
 * Nous avons décidé d'utiliser une analyse de redondance (RDA) partielle pour analyser comment la présence de clôture, l'utlisation des étangs par les vaches et les variables physico-chimiques en plus des facteurs biotiques font varier la communauté d'amphibiens, en prennant en compte l'effet de l'aire et de la profondeur des étangs comme co-variables.
 
+## Étape 7. Choix de l'analyse
+
 **Pourquoi?**
 
 * Appropriée pour mettre en lien des variables liées aux espèces (matrice Y) et des variables environnementales (matrice X) comme dans notre cas. 
@@ -705,8 +715,10 @@ dat%>%
 ## Étape 7. Choix de l'analyse
 
 **Pourquoi pas MANOVA? Pourquoi pas PCA/analyse non-contrainte?**
-MANOVA : test paramétrique donc requiert une distribution normale multivariée dans les abondances d’espèces, ce qui est rarement le cas en pratique. Elle utilise les distances euclidiennes qui ne sont pas appropriées pour les abondances d’espèces et aussi il y a souvent plus d’espèces que de degrés de libertés dans le système. 
-ANC : analyse multivariée mais pas un test statistique donc c’est purement descriptif.
+
+* MANOVA : test paramétrique donc requiert une distribution normale multivariée dans les abondances d’espèces, ce qui est rarement le cas en pratique. Elle utilise les distances euclidiennes qui ne sont pas appropriées pour les abondances d’espèces et aussi il y a souvent plus d’espèces que de degrés de libertés dans le système. 
+
+* ANC : analyse multivariée mais pas un test statistique donc c’est purement descriptif.
 
 ## Étape 7. Choix de transformation de la matrice d'abondance: 
 Communauté d’amphibiens :
@@ -786,7 +798,10 @@ require(vegan)
 
 ## Étape 8.1 Exécuter l'analyse 
 
-Donc, *avant* de valider si l'analyse a bien fonctionné, on peut voir dans le output de la RDA que près de 10% de la variance dans l'abondance est expliquée par les covariables, et environ 37% par les variables environnementales. <br> Par contre, ces pourcentages de variance expliquée sont biaisés. Effectivement,lorsqu'on utilise un R² ajusté, la variation expliquée par les variables environnementales tombent à :
+* Près de 10% de la variance dans l'abondance est expliquée par les covariables,
+* ~37% par les variables environnementales.
+
+<br> Avec un R² ajusté, la variation expliquée par les variables environnementales tombe à :
 
 ```{r RDA_code, message=FALSE}
  (R2adj <- round(RsquareAdj(prda)$adj.r.squared, dig=3))
@@ -797,7 +812,6 @@ Plus modeste! Aussi, ça concorde un peu plus avec la comparaison des premières
 
 Le test de permutations du modèle global nous indique que le modèle a quand même une certaine valeur, il permet d'expliquer une proportion de la variance dans les communautés d'abondances :
 ```{r RDA_check_model}
-#source("panelutils.R")
 anova(prda, permutations = how(nperm = 999))
 ```
 
@@ -825,9 +839,7 @@ vif.cca(prda)
 Tout est bien. <br>
 Jettons un coup d'oeil aux triplots maintenant.
 
-## Étape 8.3 - Interpréter les résultats :  triplots À FINIR 
-ajouter ellipse autour des sites avec cloture,
-souligner les 4 variables sorties de notre modèle.
+## Étape 8.3 - Interpréter les résultats : triplots
 
 ```{r RDA_triplots_scale_1, echo=F, message=F, warnings=F, results="hide", fig.dim=c(10, 5), fig.align="center"}
 
@@ -838,15 +850,24 @@ par(mfrow=c(1,2))
 # ajouter ellipse autour des sites avec cloture, 
 # souligner les 4 variables sorties de notre modèle. 
 
-triplot.rda(prda, scaling=1, 
-            move.origin=c(0, 0), 
-            mar.percent=0,
-            silent=T, site.sc = "lc", optimum = T)
-
+triplot.rda(prda,
+            #move.origin=c(0, 0),
+            silent=T,
+            site.sc = "lc", 
+            scaling=1, 
+            optimum = T)
+# “sites”, “wa”, “lc”,
 triplot.rda(prda, scaling=2, 
-            move.origin=c(0, 0), 
-            mar.percent=0.05,
-            silent=T,site.sc = "lc", optimum = T)
+            # move.origin=c(0, 0), 
+            # mar.percent=0.05,
+            silent=T,
+            site.sc = "lc", 
+            optimum = T)
+# vegan::ordiellipse(prda, 
+#                    env$cloture, show.groups="Yes",
+#                    conf=.75,
+#                    display ="lc", scaling=1,
+#                    draw="polygon", col="blue", border=NA, alpha=0.2)
 ```
 
 ## 8.3 - Interpréter les résultats : triplots 
@@ -863,7 +884,8 @@ triplot.rda(prda, scaling=2,
 * Certains amphibiens sont retrouvés là où il y a plus de poissons: 
     + H_Ci 
     + S_La
-    
+
+
 ## 8.3 - Partitionner la variance du modèle global
 
 ```{r var-par-modele-global, echo=F, message=F, warnings=F, results="hide", fig.dim=c(6.5, 5.3), fig.align="center"}
@@ -882,7 +904,7 @@ plot(amphi.part.all,
      bg = c("red",
             "blue", 
             "yellow", "orange"), 
-     Xnames = c("Bétail", "Physico-chimie", "Topo", "Facteurs\nbiotiques"), 
+     Xnames = c("Pâturage", "Physico-chimie", "Topo", "Facteurs\nbiotiques"), 
      id.size=0.9, cex=.8)+
     title("Modèle global")
 
@@ -892,11 +914,9 @@ plot(amphi.part.all,
 
 * Les facteurs biotiques combinés aux variables reliées au pâturage par les vaches expliquent la majorité de la petite portion de variance expliquée par notre analyse de redondance. 
 
-      + Le fait d'être clôturé et l'intensité d'utilisation par les vaches expliquent 4.6% de la variance,
-      
-      + Les facteurs biotiques expliquent 6.5%, 
-      
-      + Combinés, ces facteurs expliquent 12% de la variance dans la matrice d'abondances d'amphibiens. 
+    + Le fait d'être clôturé et l'intensité d'utilisation par les vaches expliquent 4.6% de la variance,
+    + Les facteurs biotiques expliquent 6.5%, 
+    + Combinés, ces facteurs expliquent 12% de la variance dans la matrice d'abondances d'amphibiens. 
       
 # FIN
 
@@ -905,9 +925,9 @@ Ils vécurent heureux et eurent beaucoup de tétards
 ## Matériel supplémentaire | Effet de quelques variables moins disciplinées
 
 On a voulu vérifier la validité de valeurs plus élevées ou plus basses pour le pH et la température.  <br>
-- Premièrement, les valeurs extrêmes de température ont lieu surtout dans les petits étangs peu profonds, donc ce ne sont probablement pas des erreurs de mesures.
-- Deuxièmement, les valeurs de pH très élevées et très basses sont louches un peu. P. ex. même avec un pH de 1.88, des poissons ont été observés dans l'étang 155.
 
+* Premièrement, les valeurs extrêmes de température ont lieu surtout dans les petits étangs peu profonds, donc ce ne sont probablement pas des erreurs de mesures.
+* Deuxièmement, les valeurs de pH très élevées et très basses sont louches un peu. P. ex. même avec un pH de 1.88, des poissons ont été observés dans l'étang 155.
 
 ```{r extreme_values, eval=FALSE, results="hide", message=F, warnings=F, echo=F}
 # Valeurs extrêmes dans les paramètres ####
@@ -940,9 +960,10 @@ dat %>%
 
 ```
 
-Ensuite, on épargne le code un peu, pour des raisons visuelles, mais on a testé différentes transformations (plusieurs saveurs de log, et aussi la racine carré) sur la température, les poissons et les ecrevisses.  
-- Visuellement, ce n'était pas très concluant. On a gardé la valeur de température sur son échelle originale. 
-- Par contre, on a modélisé les poissons et écrevisses comme des valeurs binaires, question de vérifier si les conclusions variaient beaucoup entre deux modèles globaux.  
+Ensuite, on épargne le code un peu, pour des raisons visuelles (disponible dans le `.Rmd`), mais on a testé différentes transformations (plusieurs saveurs de log, et aussi la racine carré) sur la température, les poissons et les ecrevisses.  
+
+* Visuellement, ce n'était pas très concluant. On a gardé la valeur de température sur son échelle originale. 
+* Par contre, on a modélisé les poissons et écrevisses comme des valeurs binaires, question de vérifier si les conclusions variaient beaucoup entre deux modèles globaux.  
 
 ```{r check_if_transformations_help, results="hide", message=F, warnings=F, echo=F, eval=F}
 # Est-ce que les variables bénéficieraient d'une transformation ? ####
@@ -1020,7 +1041,8 @@ hist(main="sqrt(ecrevisses)")
  # ecrevisses, pas évident, il y a beaucoup de 0. Peu importe les transformations la distribution ne s'améliore pas beaucoup. restons avec les valeurs originale, ou encore on peut créer une variable binaire.
 ```
 
-## Matériel supplémentaire | RDA avec variables binaires
+## Matériel supplémentaire - RDA avec variables binaires
+
 ```{r scnd_RDA_prepare_data, results="hide", message=F, warnings=F, echo=F}
 topo=dat %>% 
     subset(oxygene>0) %>% 
@@ -1056,7 +1078,7 @@ rownames(env2) <- subset(dat, oxygene>0)$etang
 # On change le nom des lignes pour se retrouver plus tard ^^
 ```
 
-On lance la RDA partielle, avec des variables binaires pour les poissons et les écrevisses. `env2` a été fait plus haut mais le code est caché. 
+On lance la RDA partielle, avec des variables binaires pour les poissons et les écrevisses. `env2` a été fait plus haut mais le code est caché (voir fichier `.Rmd`). 
 
 ```{r scnd_RDA_launched, message=FALSE}
 require(vegan)
